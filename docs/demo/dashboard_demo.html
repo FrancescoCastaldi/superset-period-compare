@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apache Superset - Dashboard Period Compare Demo</title>
+  <!--Apache ECharts CDN-->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <!--Google Fonts: Inter-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --superset-navy: #1a2738;
+      --superset-blue: #20a7c9;
+      --superset-blue-dark: #1987a3;
+      --superset-blue-light: #e6f7fa;
+      --superset-bg: #f3f5f8;
+      --superset-card-bg: #ffffff;
+      --superset-border: #e2e8f0;
+      --superset-text-primary: #1e293b;
+      --superset-text-secondary: #64748b;
+      --superset-success: #10b981;
+      --superset-danger: #ef4444;
+      --superset-compare-color: #f97316;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--superset-bg);
+      color: var(--superset-text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    header.superset-nav {
+      background-color: var(--superset-navy);
+      color: #ffffff;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 20;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.2px;
+    }
+
+    .superset-logo-badge {
+      background: linear-gradient(135deg, var(--superset-blue), #10b981);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      color: white;
+    }
+
+    .nav-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .nav-breadcrumb span.active {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-pill {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-pill:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Subheader with title and status */
+    .dashboard-header {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--superset-border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dashboard-title-box h1 {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--superset-text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-status {
+      background-color: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .dashboard-subtitle {
+      font-size: 12px;
+      color: var(--superset-text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Main Layout with Native Filter Drawer */
+    .dashboard-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar: Native Filters */
+    aside.native-filter-sidebar {
+      width: 320px;
+      background-color: #ffffff;
+      border-right: 1px solid var(--superset-border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 2px 0 6px rgba(0, 0, 0, 0.02);
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--superset-blue-light);
+      padding-bottom: 10px;
+    }
+
+    .filter-header h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--superset-navy);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--superset-text-secondary);
+    }
+
+    .filter-control {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--superset-border);
+      border-radius: 6px;
+      font-size: 13px;
+      background-color: #ffffff;
+      color: var(--superset-text-primary);
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .filter-control:focus {
+      border-color: var(--superset-blue);
+      box-shadow: 0 0 0 3px rgba(32, 167, 201, 0.15);
+    }
+
+    .filter-box-highlight {
+      background-color: var(--superset-blue-light);
+      border: 1px solid rgba(32, 167, 201, 0.3);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .filter-box-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--superset-blue-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-apply {
+      background-color: var(--superset-blue);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn-apply:hover {
+      background-color: var(--superset-blue-dark);
+    }
+
+    /* Main Canvas */
+    main.dashboard-canvas {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Explanation Banner */
+    .info-banner {
+      background-color: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #1e3a8a;
+    }
+
+    /* Grid for Cards and Charts */
+    .row-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background-color: var(--superset-card-bg);
+      border: 1px solid var(--superset-border);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .kpi-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--superset-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .kpi-value-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .kpi-main-number {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--superset-text-primary);
+    }
+
+    .kpi-delta-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi-delta-pill.positive {
+      background-color: #ecfdf5;
+      color: var(--superset-success);
+      border: 1px solid #a7f3d0;
+    }
+
+    .kpi-delta-pill.negative {
+      background-color: #fef2f2;
+      color: var(--superset-danger);
+      border: 1px solid #fecaca;
+    }
+
+    .kpi-comparison-subtext {
+      font-size: 11px;
+      color: var(--superset-text-secondary);
+      margin-top: 6px;
+    }
+
+    .kpi-comparison-subtext span.comp-val {
+      font-weight: 600;
+      color: var(--superset-compare-color);
+    }
+
+    /* Charts Row */
+    .row-charts {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+
+    .card-chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 10px;
+    }
+
+    .card-chart-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--superset-text-primary);
+    }
+
+    .legend-indicators {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .indicator-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot-ref {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--superset-blue);
+    }
+
+    .dot-comp {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--superset-compare-color);
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 320px;
+    }
+
+    /* Table Chart */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table.superset-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    table.superset-table th {
+      background-color: #f8fafc;
+      color: var(--superset-text-secondary);
+      font-weight: 600;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--superset-border);
+    }
+
+    table.superset-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--superset-text-primary);
+    }
+
+    table.superset-table tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .num-col {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cell-delta {
+      font-weight: 600;
+    }
+
+    .cell-delta.up { color: var(--superset-success); }
+    .cell-delta.down { color: var(--superset-danger); }
+
+    /* Footer */
+    footer.superset-footer {
+      background-color: #ffffff;
+      border-top: 1px solid var(--superset-border);
+      padding: 12px 24px;
+      font-size: 11px;
+      color: var(--superset-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <!--Top Navigation-->
+  <header class="superset-nav">
+    <div class="nav-brand">
+      <div class="superset-logo-badge">S</div>
+      <span>Apache Superset</span>
+      <div class="nav-breadcrumb">
+        <span>/</span>
+        <span>Dashboard</span>
+        <span>/</span>
+        <span class="active">Performance Vendite & Analisi Temporale</span>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-pill" onclick="simulateRefresh()">Aggiorna Dati</button>
+      <button class="btn-pill">Modifica Dashboard</button>
+    </div>
+  </header>
+
+  <!--Dashboard Title Header-->
+  <div class="dashboard-header">
+    <div class="dashboard-title-box">
+      <h1>
+        Monitoraggio Vendite Multi-Periodo
+        <span class="badge-status">Period Compare Attivo</span>
+      </h1>
+      <p class="dashboard-subtitle">
+        Confronto interattivo su singola colonna data senza viste SQL cartesiane (Superset 6.1.0 Patch)
+      </p>
+    </div>
+  </div>
+
+  <!--Main Layout-->
+  <div class="dashboard-layout">
+
+    <!--Native Filter Sidebar-->
+    <aside class="native-filter-sidebar">
+      <div class="filter-header">
+        <h2>Filtri Dashboard</h2>
+      </div>
+
+      <!--Native Filter: PeriodCompare-->
+      <div class="filter-box-highlight">
+        <div class="filter-box-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          Filtro PeriodCompare
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="ref-period">Periodo di Riferimento:</label>
+          <select id="ref-period" class="filter-control" onchange="updateComparisonRange()">
+            <option value="2026-01">Gennaio 2026 (Mese Corrente)</option>
+            <option value="2025-Q4">Q4 2025 (Ottobre - Dicembre)</option>
+            <option value="2025-12">Dicembre 2025</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="compare-preset">Confronta Con:</label>
+          <select id="compare-preset" class="filter-control" onchange="updateComparisonRange()">
+            <option value="prev_month">Mese Precedente (Dicembre 2025)</option>
+            <option value="prev_year" selected>Anno Precedente (Gennaio 2025)</option>
+            <option value="custom">Personalizzato (Intervallo Libero)</option>
+          </select>
+        </div>
+
+        <div class="filter-group" id="custom-range-box" style="display: none;">
+          <label class="filter-label">Intervallo Personalizzato:</label>
+          <input type="text" class="filter-control" value="2025-01-01 : 2025-01-31" readonly>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="display-mode">Modalita di Calcolo:</label>
+          <select id="display-mode" class="filter-control">
+            <option value="actual">Valori Effettivi Affiancati</option>
+            <option value="difference">Differenza Assoluta (Delta)</option>
+            <option value="percentage">Variazione Percentuale (%)</option>
+          </select>
+        </div>
+
+        <button class="btn-apply" onclick="applyFilters()">Applica Filtro</button>
+      </div>
+
+      <!--Additional standard filters-->
+      <div class="filter-group">
+        <label class="filter-label" for="region-filter">Area Geografica:</label>
+        <select id="region-filter" class="filter-control">
+          <option value="all">Tutte le Regioni</option>
+          <option value="nord">Nord Italia</option>
+          <option value="centro">Centro Italia</option>
+          <option value="sud">Sud e Isole</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label" for="channel-filter">Canale Vendita:</label>
+        <select id="channel-filter" class="filter-control">
+          <option value="all">Tutti i Canali</option>
+          <option value="b2b">Diretto B2B</option>
+          <option value="online">E-Commerce Online</option>
+          <option value="retail">Punti Vendita Retail</option>
+        </select>
+      </div>
+    </aside>
+
+    <!--Canvas-->
+    <main class="dashboard-canvas">
+
+      <!--Informational banner-->
+      <div class="info-banner">
+        <div>
+          <strong>Come funziona la visualizzazione simultanea:</strong>
+          Il backend esegue due query aggregate distinte per i due periodi.
+          Le date del periodo di confronto vengono traslate e allineate automaticamente sulla grana giornaliera dell'asse X, consentendo il confronto 1:1 sovrapposto.
+        </div>
+      </div>
+
+      <!--Row 1: KPI Big Numbers-->
+      <section class="row-kpis">
+
+        <!--KPI 1-->
+        <div class="card">
+          <span class="kpi-title">Fatturato Totale</span>
+          <div class="kpi-value-row">
+            <span class="kpi-main-number" id="kpi-revenue">248.500 €</span>
+            <span class="kpi-delta-pill positive" id="kpi-revenue-delta">▲ +15,5%</span>
+          </div>
+          <p class="kpi-comparison-subtext">
+            vs periodo confronto: <span class="comp-val" id="kpi-revenue-comp">215.200 €</span>
+          </p>
+        </div>
+
+        <!--KPI 2-->
+        <div class="card">
+          <span class="kpi-title">Ordini Conclusi</span>
+          <div class="kpi-value-row">
+            <span class="kpi-main-number" id="kpi-orders">3.420</span>
+            <span class="kpi-delta-pill positive" id="kpi-orders-delta">▲ +10,0%</span>
+          </div>
+          <p class="kpi-comparison-subtext">
+            vs periodo confronto: <span class="comp-val" id="kpi-orders-comp">3.110</span>
+          </p>
+        </div>
+
+        <!--KPI 3-->
+        <div class="card">
+          <span class="kpi-title">Scontrino Medio</span>
+          <div class="kpi-value-row">
+            <span class="kpi-main-number" id="kpi-ticket">72,66 €</span>
+            <span class="kpi-delta-pill positive" id="kpi-ticket-delta">▲ +5,0%</span>
+          </div>
+          <p class="kpi-comparison-subtext">
+            vs periodo confronto: <span class="comp-val" id="kpi-ticket-comp">69,19 €</span>
+          </p>
+        </div>
+
+        <!--KPI 4-->
+        <div class="card">
+          <span class="kpi-title">Ticket Assistenza</span>
+          <div class="kpi-value-row">
+            <span class="kpi-main-number" id="kpi-support">142</span>
+            <span class="kpi-delta-pill positive" id="kpi-support-delta">▼ -21,1%</span>
+          </div>
+          <p class="kpi-comparison-subtext">
+            vs periodo confronto: <span class="comp-val" id="kpi-support-comp">180</span>
+          </p>
+        </div>
+
+      </section>
+
+      <!--Row 2: Charts-->
+      <section class="row-charts">
+
+        <!--Line Timeseries Chart-->
+        <div class="card">
+          <div class="card-chart-header">
+            <h3 class="card-chart-title">Andamento Giornaliero Fatturato (ECharts Timeseries Line)</h3>
+            <div class="legend-indicators">
+              <div class="indicator-item">
+                <span class="dot-ref"></span>
+                <span id="legend-ref-label">Periodo Riferimento (Gen 2026)</span>
+              </div>
+              <div class="indicator-item">
+                <span class="dot-comp"></span>
+                <span id="legend-comp-label">Periodo Confronto (Gen 2025)</span>
+              </div>
+            </div>
+          </div>
+          <div id="chart-timeseries" class="chart-container"></div>
+        </div>
+
+        <!--Bar Comparison Chart-->
+        <div class="card">
+          <div class="card-chart-header">
+            <h3 class="card-chart-title">Vendite per Categoria (ECharts Bar)</h3>
+          </div>
+          <div id="chart-category-bar" class="chart-container"></div>
+        </div>
+
+      </section>
+
+      <!--Row 3: Table Chart-->
+      <section class="card">
+        <div class="card-chart-header">
+          <h3 class="card-chart-title">Dettaglio Comparativo per Macro-Area (Table Chart)</h3>
+        </div>
+        <div class="table-container">
+          <table class="superset-table">
+            <thead>
+              <tr>
+                <th>Area / Categoria</th>
+                <th class="num-col">Periodo Attuale</th>
+                <th class="num-col">Periodo Confronto</th>
+                <th class="num-col">Differenza Netta</th>
+                <th class="num-col">Scostamento %</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <tr>
+                <td><strong>Hardware & Sistemi</strong></td>
+                <td class="num-col">94.200 €</td>
+                <td class="num-col">82.100 €</td>
+                <td class="num-col cell-delta up">+12.100 €</td>
+                <td class="num-col cell-delta up">+14,7%</td>
+              </tr>
+              <tr>
+                <td><strong>Software & Licenze</strong></td>
+                <td class="num-col">68.400 €</td>
+                <td class="num-col">56.000 €</td>
+                <td class="num-col cell-delta up">+12.400 €</td>
+                <td class="num-col cell-delta up">+22,1%</td>
+              </tr>
+              <tr>
+                <td><strong>Servizi Cloud & Hosting</strong></td>
+                <td class="num-col">52.900 €</td>
+                <td class="num-col">49.300 €</td>
+                <td class="num-col cell-delta up">+3.600 €</td>
+                <td class="num-col cell-delta up">+7,3%</td>
+              </tr>
+              <tr>
+                <td><strong>Consulenza & Formazione</strong></td>
+                <td class="num-col">33.000 €</td>
+                <td class="num-col">27.800 €</td>
+                <td class="num-col cell-delta up">+5.200 €</td>
+                <td class="num-col cell-delta up">+18,7%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!--Footer-->
+  <footer class="superset-footer">
+    <span>Apache Superset 6.1.0 (Period Compare Native Extension)</span>
+    <span>Dataset Sintetico Dimostrativo - Allineamento Asse X per Grana Giornaliera</span>
+  </footer>
+
+  <script>
+    // Initialize ECharts instances
+    let timeseriesChart = echarts.init(document.getElementById('chart-timeseries'));
+    let categoryBarChart = echarts.init(document.getElementById('chart-category-bar'));
+
+    // Synthetic daily data generation for January (31 days)
+    const days = Array.from({ length: 31 }, (_, i) => `${i + 1} Gen`);
+    
+    // Baseline datasets (Gen 2026 vs Gen 2025)
+    const dataRefYear = [
+      7200, 6800, 8100, 7900, 6500, 5200, 4800, 
+      8400, 8900, 9200, 8800, 7600, 5400, 5100, 
+      8700, 9100, 9600, 9300, 8200, 5800, 5500, 
+      9400, 9800, 10200, 9700, 8600, 6100, 5900, 
+      9900, 10400, 10100
+    ];
+
+    const dataCompPrevYear = [
+      6200, 5900, 7100, 6800, 5700, 4500, 4100, 
+      7300, 7700, 8000, 7600, 6600, 4700, 4400, 
+      7500, 7900, 8300, 8000, 7100, 5000, 4800, 
+      8100, 8500, 8800, 8400, 7400, 5300, 5100, 
+      8600, 9000, 8700
+    ];
+
+    const dataCompPrevMonth = [
+      6900, 6500, 7700, 7500, 6200, 4900, 4600, 
+      8000, 8500, 8700, 8400, 7200, 5100, 4900, 
+      8300, 8700, 9100, 8800, 7800, 5500, 5200, 
+      9000, 9300, 9700, 9200, 8200, 5800, 5600, 
+      9400, 9900, 9600
+    ];
+
+    function renderTimeseries(refData, compData, compName) {
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: '#1e293b',
+          borderColor: '#334155',
+          textStyle: { color: '#f8fafc', fontSize: 12 },
+          formatter: function(params) {
+            let res = `<div style="font-weight:700;margin-bottom:4px;border-bottom:1px solid #475569;padding-bottom:2px;">${params[0].axisValue}</div>`;
+            let valRef = 0;
+            let valComp = 0;
+            params.forEach(p => {
+              if (p.seriesIndex === 0) valRef = p.value;
+              if (p.seriesIndex === 1) valComp = p.value;
+              res += `<div style="display:flex;justify-content:space-between;gap:12px;margin:3px 0;">
+                        <span>${p.marker} ${p.seriesName}:</span>
+                        <strong>${p.value.toLocaleString('it-IT')} €</strong>
+                      </div>`;
+            });
+            if (valComp > 0) {
+              const delta = valRef - valComp;
+              const pct = ((delta / valComp) * 100).toFixed(1);
+              const sign = delta >= 0 ? '+' : '';
+              const color = delta >= 0 ? '#10b981' : '#ef4444';
+              res += `<div style="margin-top:4px;padding-top:4px;border-top:1px dashed #475569;color:${color};font-weight:700;">
+                        Scostamento: ${sign}${delta.toLocaleString('it-IT')} € (${sign}${pct}%)
+                      </div>`;
+            }
+            return res;
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '8%',
+          top: '8%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: days,
+          boundaryGap: false,
+          axisLine: { lineStyle: { color: '#cbd5e1' } },
+          axisLabel: { color: '#64748b', fontSize: 11 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLabel: {
+            formatter: (v) => `${(v / 1000).toFixed(0)}k €`,
+            color: '#64748b'
+          },
+          splitLine: { lineStyle: { color: '#f1f5f9' } }
+        },
+        series: [
+          {
+            name: 'Gennaio 2026 (Riferimento)',
+            type: 'line',
+            data: refData,
+            smooth: true,
+            showSymbol: false,
+            itemStyle: { color: '#20a7c9' },
+            lineStyle: { width: 3 },
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(32, 167, 201, 0.25)' },
+                { offset: 1, color: 'rgba(32, 167, 201, 0.0)' }
+              ])
+            }
+          },
+          {
+            name: compName,
+            type: 'line',
+            data: compData,
+            smooth: true,
+            showSymbol: false,
+            itemStyle: { color: '#f97316' },
+            lineStyle: { width: 2, type: 'dashed' }
+          }
+        ]
+      };
+      timeseriesChart.setOption(option);
+    }
+
+    function renderCategoryBar(compData) {
+      const categories = ['Hardware', 'Software', 'Cloud', 'Consulenza'];
+      const refVals = [94.2, 68.4, 52.9, 33.0];
+      const compVals = compData || [82.1, 56.0, 49.3, 27.8];
+
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' }
+        },
+        legend: {
+          bottom: '0%',
+          textStyle: { fontSize: 11, color: '#64748b' }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '12%',
+          top: '5%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: categories,
+          axisLine: { lineStyle: { color: '#cbd5e1' } },
+          axisLabel: { color: '#64748b', fontSize: 11 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLabel: {
+            formatter: '{value}k €',
+            color: '#64748b'
+          },
+          splitLine: { lineStyle: { color: '#f1f5f9' } }
+        },
+        series: [
+          {
+            name: 'Gen 2026',
+            type: 'bar',
+            data: refVals,
+            itemStyle: { color: '#20a7c9', borderRadius: [4, 4, 0, 0] }
+          },
+          {
+            name: 'Confronto',
+            type: 'bar',
+            data: compVals,
+            itemStyle: { color: '#f97316', borderRadius: [4, 4, 0, 0] }
+          }
+        ]
+      };
+      categoryBarChart.setOption(option);
+    }
+
+    function updateComparisonRange() {
+      const preset = document.getElementById('compare-preset').value;
+      const customBox = document.getElementById('custom-range-box');
+      if (preset === 'custom') {
+        customBox.style.display = 'block';
+      } else {
+        customBox.style.display = 'none';
+      }
+    }
+
+    function applyFilters() {
+      const preset = document.getElementById('compare-preset').value;
+      let compData = dataCompPrevYear;
+      let compLabel = 'Periodo Confronto (Gen 2025)';
+      let catComp = [82.1, 56.0, 49.3, 27.8];
+
+      if (preset === 'prev_month') {
+        compData = dataCompPrevMonth;
+        compLabel = 'Periodo Confronto (Dic 2025)';
+        catComp = [89.0, 63.5, 51.0, 31.0];
+        document.getElementById('kpi-revenue-comp').textContent = '234.500 €';
+        document.getElementById('kpi-revenue-delta').textContent = '▲ +6,0%';
+        document.getElementById('kpi-orders-comp').textContent = '3.250';
+        document.getElementById('kpi-orders-delta').textContent = '▲ +5,2%';
+      } else {
+        document.getElementById('kpi-revenue-comp').textContent = '215.200 €';
+        document.getElementById('kpi-revenue-delta').textContent = '▲ +15,5%';
+        document.getElementById('kpi-orders-comp').textContent = '3.110';
+        document.getElementById('kpi-orders-delta').textContent = '▲ +10,0%';
+      }
+
+      document.getElementById('legend-comp-label').textContent = compLabel;
+
+      renderTimeseries(dataRefYear, compData, compLabel);
+      renderCategoryBar(catComp);
+    }
+
+    function simulateRefresh() {
+      applyFilters();
+    }
+
+    // Initial render
+    renderTimeseries(dataRefYear, dataCompPrevYear, 'Gennaio 2025 (Confronto)');
+    renderCategoryBar([82.1, 56.0, 49.3, 27.8]);
+
+    // Responsive resize
+    window.addEventListener('resize', () => {
+      timeseriesChart.resize();
+      categoryBarChart.resize();
+    });
+  </script>
+</body>
+</html>
