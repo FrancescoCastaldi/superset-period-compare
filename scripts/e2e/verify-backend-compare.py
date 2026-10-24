@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Verifica il confronto tra periodi del backend Superset patchato.
+Verifies the period comparison of the patched Superset backend.
 
-Per ogni caso interroga /api/v1/chart/data con un periodo di riferimento e un periodo di
-confronto (time_offsets in formato intervallo) e confronta ogni valore restituito con una
-query SQL diretta sul database di prova (load-fixtures-postgres.py).
+For every case it queries /api/v1/chart/data with a reference period and a comparison
+period (time_offsets in range format) and compares each returned value with a direct
+SQL query on the test database (load-fixtures-postgres.py).
 
-Uso (dentro il container di Superset, dopo setup-test-dashboard.py):
+Usage (inside the Superset container, after setup-test-dashboard.py):
     python verify-backend-compare.py --base http://localhost:8088
 
-Esce con codice 1 se almeno un controllo fallisce.
+Exits with code 1 if at least one check fails.
 """
 
 import argparse
@@ -36,7 +36,7 @@ def add_months(day, months):
     month_index = day.year * 12 + day.month - 1 + months
     year, month = divmod(month_index, 12)
     month += 1
-    # stessa logica di pd.DateOffset(months=n): il giorno viene ridotto alla fine del mese
+    # same logic as pd.DateOffset(months=n): the day is clamped to the end of the month
     last = (date(year + (month == 12), month % 12 + 1, 1) - timedelta(days=1)).day
     return date(year, month, min(day.day, last))
 
@@ -49,7 +49,7 @@ class Verifier:
         self.failures = 0
         self.checks = 0
 
-    # --- SQL di riferimento -------------------------------------------------
+    # --- reference SQL ------------------------------------------------------
     def sql_total(self, start, end, group=None):
         with self.pg.cursor() as cur:
             if group:
@@ -83,7 +83,7 @@ class Verifier:
             )
             return {row[0]: row[1] for row in cur.fetchall()}
 
-    # --- chiamata API -------------------------------------------------------
+    # --- API call -----------------------------------------------------------
     def query(self, ref, comp, columns=None, post_processing=None):
         body = {
             "datasource": {"id": self.dataset_id, "type": "table"},
@@ -105,10 +105,10 @@ class Verifier:
         }
         result = self.api.call("POST", "/api/v1/chart/data", body)["result"][0]
         if result.get("error"):
-            sys.exit(f"errore del backend: {result['error']}")
+            sys.exit(f"backend error: {result['error']}")
         return result["data"]
 
-    # --- confronti ----------------------------------------------------------
+    # --- checks -------------------------------------------------------------
     def check(self, case, label, got, expected):
         self.checks += 1
         got_d = None if got is None else Decimal(str(got))
@@ -120,7 +120,7 @@ class Verifier:
         status = "PASS" if ok else "FAIL"
         if not ok:
             self.failures += 1
-        print(f"  [{status}] {case} {label}: atteso={exp_d} ottenuto={got_d}")
+        print(f"  [{status}] {case} {label}: expected={exp_d} got={got_d}")
 
     def case_totals(self, case, ref, comp):
         rs, re_ = [d.strip() for d in ref.split(" : ")]
@@ -129,8 +129,8 @@ class Verifier:
         assert len(rows) == 1, rows
         row = rows[0]
         comp_key = f"sum_sales__{comp}"
-        self.check(case, "riferimento", row.get("sum_sales"), self.sql_total(rs, re_))
-        self.check(case, "confronto", row.get(comp_key), self.sql_total(cs, ce))
+        self.check(case, "reference", row.get("sum_sales"), self.sql_total(rs, re_))
+        self.check(case, "comparison", row.get(comp_key), self.sql_total(cs, ce))
 
     def case_group(self, case, ref, comp, column):
         rs, re_ = [d.strip() for d in ref.split(" : ")]
@@ -139,8 +139,8 @@ class Verifier:
         ref_sql = self.sql_total(rs, re_, column)
         comp_sql = self.sql_total(cs, ce, column)
         for key in sorted(ref_sql):
-            self.check(case, f"{key} riferimento", rows[key].get("sum_sales"), ref_sql[key])
-            self.check(case, f"{key} confronto", rows[key].get(f"sum_sales__{comp}"), comp_sql.get(key))
+            self.check(case, f"{key} reference", rows[key].get("sum_sales"), ref_sql[key])
+            self.check(case, f"{key} comparison", rows[key].get(f"sum_sales__{comp}"), comp_sql.get(key))
 
     def case_compare_types(self, case, ref, comp):
         rs, re_ = [d.strip() for d in ref.split(" : ")]
@@ -168,10 +168,10 @@ class Verifier:
             self.checks += 1
             if not tol_ok:
                 self.failures += 1
-            print(f"  [{'PASS' if tol_ok else 'FAIL'}] {case} {compare_type}: atteso={exp:.6f} ottenuto={got}")
+            print(f"  [{'PASS' if tol_ok else 'FAIL'}] {case} {compare_type}: expected={exp:.6f} got={got}")
 
     def case_daily_alignment(self, case, ref, comp, months_shift=None, days_shift=None):
-        """Serie giornaliera: il giorno d del riferimento deve avere il valore del giorno d - scostamento del confronto."""
+        """Daily series: day d of the reference period must carry the value of day d - shift of the comparison period."""
         rs, re_ = [d.strip() for d in ref.split(" : ")]
         cs, ce = [d.strip() for d in comp.split(" : ")]
         rows = self.query(ref, comp, columns=[{
@@ -183,8 +183,8 @@ class Verifier:
         comp_key = f"sum_sales__{comp}"
         day = date.fromisoformat(rs)
         end = date.fromisoformat(re_)
-        # Ogni giorno del confronto viene traslato in avanti dello scostamento. Un giorno del
-        # riferimento senza giorno corrispondente (marzo ha 31 giorni, febbraio 28) resta vuoto.
+        # Every comparison day is shifted forward by the offset. A reference day without a
+        # matching day (March has 31 days, February 28) stays empty.
         comp_day = date.fromisoformat(cs)
         shifted_to_source = {}
         while comp_day < date.fromisoformat(ce):
@@ -199,7 +199,7 @@ class Verifier:
             exp_comp = comp_sql.get(src_day) if src_day else None
             got_ref = None if row is None else row.get("sum_sales")
             got_comp = None if row is None else row.get(comp_key)
-            for what, got, exp in (("riferimento", got_ref, exp_ref), ("confronto", got_comp, exp_comp)):
+            for what, got, exp in (("reference", got_ref, exp_ref), ("comparison", got_comp, exp_comp)):
                 compared += 1
                 g = None if got is None else Decimal(str(got))
                 e = None if exp is None else Decimal(str(exp))
@@ -208,12 +208,12 @@ class Verifier:
                 if not same:
                     mismatches += 1
                     if mismatches <= 5:
-                        print(f"    giorno {day} {what}: atteso={e} ottenuto={g}")
+                        print(f"    day {day} {what}: expected={e} got={g}")
             day += timedelta(days=1)
         self.checks += 1
         if mismatches:
             self.failures += 1
-        print(f"  [{'PASS' if not mismatches else 'FAIL'}] {case}: {compared} valori giornalieri confrontati, {mismatches} differenze")
+        print(f"  [{'PASS' if not mismatches else 'FAIL'}] {case}: {compared} daily values compared, {mismatches} differences")
 
     def case_monthly(self, case, ref, comp, months_shift):
         rs, re_ = [d.strip() for d in ref.split(" : ")]
@@ -226,8 +226,8 @@ class Verifier:
         comp_key = f"sum_sales__{comp}"
         for r in rows:
             month = datetime.utcfromtimestamp(r["order_date"] / 1000).date().replace(day=1)
-            self.check(case, f"{month:%Y-%m} riferimento", r.get("sum_sales"), ref_sql.get(month))
-            self.check(case, f"{month:%Y-%m} confronto", r.get(comp_key), comp_sql.get(add_months(month, -months_shift)))
+            self.check(case, f"{month:%Y-%m} reference", r.get("sum_sales"), ref_sql.get(month))
+            self.check(case, f"{month:%Y-%m} comparison", r.get(comp_key), comp_sql.get(add_months(month, -months_shift)))
 
 
 def main():
@@ -244,24 +244,24 @@ def main():
     pg = psycopg2.connect(host=args.pg_host, user="superset", password="superset", dbname="pcdata")
     v = Verifier(api, dataset_id, pg)
 
-    print("C1 mese precedente (totali)")
+    print("C1 previous month (totals)")
     v.case_totals("C1", "2026-09-01 : 2026-10-01", "2026-08-01 : 2026-09-01")
-    print("C2 stesso mese anno precedente (totali)")
+    print("C2 same month of the previous year (totals)")
     v.case_totals("C2", "2026-09-01 : 2026-10-01", "2025-09-01 : 2025-10-01")
-    print("C3 trimestre per categoria")
+    print("C3 quarter by category")
     v.case_group("C3", "2026-07-01 : 2026-10-01", "2026-04-01 : 2026-07-01", "category")
-    print("C4 intervalli liberi di 12 giorni")
+    print("C4 free ranges of 12 days")
     v.case_totals("C4", "2026-03-05 : 2026-03-17", "2026-02-10 : 2026-02-22")
-    print("C5 tipi di confronto (differenza, percentuale, rapporto)")
+    print("C5 comparison types (difference, percentage, ratio)")
     v.case_compare_types("C5", "2026-09-01 : 2026-10-01", "2026-08-01 : 2026-09-01")
-    print("C6 serie giornaliera marzo vs febbraio (31 giorni contro 28, allineamento per mesi)")
+    print("C6 daily series March vs February (31 days against 28, aligned by months)")
     v.case_daily_alignment("C6", "2026-03-01 : 2026-04-01", "2026-02-01 : 2026-03-01", 1)
-    print("C7 serie giornaliera con intervalli liberi (allineamento per giorni)")
+    print("C7 daily series with free ranges (aligned by days)")
     v.case_daily_alignment("C7", "2026-03-10 : 2026-03-20", "2026-02-20 : 2026-03-02", days_shift=18)
-    print("C8 serie mensile trimestre vs trimestre precedente")
+    print("C8 monthly series quarter vs previous quarter")
     v.case_monthly("C8", "2026-07-01 : 2026-10-01", "2026-04-01 : 2026-07-01", 3)
 
-    print(f"\nControlli: {v.checks}, falliti: {v.failures}")
+    print(f"\nChecks: {v.checks}, failed: {v.failures}")
     sys.exit(1 if v.failures else 0)
 
 

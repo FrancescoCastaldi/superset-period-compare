@@ -100,8 +100,8 @@ export default function PeriodCompareFilterPlugin(
 
   const referenceColumn =
     formData?.reference_column || formData?.groupby?.[0];
-  // granularity_sqla accetta solo il nome della colonna, non una colonna ad hoc.
-  // Una stringa ha identita stabile: formData.groupby e un array nuovo a ogni render.
+  // granularity_sqla only accepts the column name, not an ad hoc column.
+  // A string has a stable identity: formData.groupby is a new array on every render.
   const referenceCol =
     typeof referenceColumn === 'string' ? referenceColumn : undefined;
 
@@ -122,9 +122,9 @@ export default function PeriodCompareFilterPlugin(
         resolved.referenceRange && resolved.referenceRange !== NO_TIME_RANGE;
       const isComparing = resolved.isActive && !!resolved.comparisonRange;
 
-      // In ExtraFormData time_compare e dichiarato string (ExtraFormDataOverrideExtras)
-      // e string[] (ExtraFormDataOverrideRegular): nessun valore soddisfa entrambi.
-      // Il valore reale e una lista di intervalli, come legge applyDashboardComparison.
+      // In ExtraFormData, time_compare is declared as string (ExtraFormDataOverrideExtras)
+      // and as string[] (ExtraFormDataOverrideRegular): no value satisfies both.
+      // The real value is a list of ranges, as read by applyDashboardComparison.
       const extraFormData = (
         isComparing
           ? {
@@ -157,8 +157,8 @@ export default function PeriodCompareFilterPlugin(
     [setDataMask, referenceCol],
   );
 
-  // setDataMask aggiorna lo stato della dashboard, che fa rifare il render del filtro:
-  // senza questa guardia ogni render rilancerebbe l'effetto in un ciclo infinito.
+  // setDataMask updates the dashboard state, which re-renders the filter: without this
+  // guard every render would re-run the effect in an infinite loop.
   const lastApplied = useRef<string>();
   useEffect(() => {
     const key = JSON.stringify([

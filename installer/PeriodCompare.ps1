@@ -65,11 +65,6 @@ function Resolve-SupersetTargetDirectory {
         }
     }
 
-    # 4. Standard local workspace locations
-    $rawCandidates.Add("D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-custom")
-    $rawCandidates.Add("D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-pc")
-    $rawCandidates.Add("D:\Actual\03_Sviluppo_Software\Repositories\superset-6.1.0")
-
     $scored = @()
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
@@ -133,7 +128,7 @@ if ([string]::IsNullOrWhiteSpace($TargetDir) -or (-not (Test-Path $TargetDir))) 
 $ScriptDir = $PSScriptRoot
 $RepoRoot = Resolve-Path (Join-Path $ScriptDir "..")
 $PayloadDir = Join-Path $RepoRoot "payload"
-$CompatFile = Join-Path $RepoRoot "compat.json"
+$CompatFile = Join-Path $RepoRoot "compat\compat.json"
 
 # Import helper libraries
 . (Join-Path $ScriptDir "lib\Backup.ps1")

@@ -1,11 +1,16 @@
-# Tools: make-payload.ps1
-# Extracts modified files and new files from the worktree into the payload/ folder,
-# and generates compat.json containing SHA-256 hashes of the upstream 6.1.0 baseline.
+# scripts/make-payload.ps1
+# Extracts the modified and new files from a Superset worktree into the payload/ folder
+# and generates compat/compat.json, which holds the SHA-256 hashes of the upstream
+# baseline (LF line endings) used by the installer to recognize untouched files.
+#
+# Usage:
+#   scripts\make-payload.ps1 -WorktreePath <path to a Superset checkout with the patch committed>
 
 param(
-    [string]$WorktreePath = "D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-pc",
+    [Parameter(Mandatory = $true)]
+    [string]$WorktreePath,
     [string]$OutputDir = "$PSScriptRoot\..\payload",
-    [string]$CompatFile = "$PSScriptRoot\..\compat.json",
+    [string]$CompatFile = "$PSScriptRoot\..\compat\compat.json",
     [string]$BaseTag = "6.1.0"
 )
 
@@ -56,9 +61,9 @@ foreach ($line in $diffLines) {
     if ($status -eq "M") {
         $tempOriginal = [System.IO.Path]::GetTempFileName()
         try {
-            # Il blob upstream va scritto byte per byte: la pipe di PowerShell con
-            # Set-Content -NoNewline toglie gli a capo e aggiunge il BOM, e l'hash
-            # non coinciderebbe mai con quello di un file reale.
+            # The upstream blob must be written byte for byte: piping it through
+            # Set-Content -NoNewline strips the line breaks and adds a BOM, and the
+            # hash would never match a real file.
             Start-Process -FilePath git -ArgumentList @("-C", $WorktreePath, "cat-file", "blob", "$($BaseTag):$relPath") -RedirectStandardOutput $tempOriginal -NoNewWindow -Wait
             $bytes = [System.IO.File]::ReadAllBytes($tempOriginal)
             $lf = New-Object System.IO.MemoryStream

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Crea in Superset (via API REST) il database di prova, i dataset, 5 grafici e una
-dashboard con il filtro nativo PeriodCompare, usando i dati di load-fixtures-postgres.py.
+Creates in Superset (through the REST API) the test database, the datasets, 5 charts
+and a dashboard with the native PeriodCompare filter, using the data loaded by
+load-fixtures-postgres.py.
 
-Uso (dentro il container di Superset):
+Usage (inside the Superset container):
     python setup-test-dashboard.py --base http://localhost:8088 --user admin --password admin
 
-Lo script e' idempotente: database e dataset vengono riusati, grafici e dashboard con
-lo stesso nome vengono ricreati. Stampa un JSON con gli id creati.
+The script is idempotent: the database and datasets are reused, charts and the
+dashboard with the same name are recreated. It prints a JSON with the created ids.
 """
 
 import argparse
@@ -29,7 +30,7 @@ class Api:
         self.base = base.rstrip("/")
         self.token = None
         self.csrf = None
-        # il token CSRF e legato alla sessione: servono i cookie
+        # the CSRF token is bound to the session: cookies are required
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
         self.token = self.call(
             "POST",
@@ -98,7 +99,7 @@ def ensure_dataset(api, db_id, table, main_dttm, metrics):
                 "is_dttm": col["column_name"] in TEMPORAL,
             }
         )
-    # i metrici gia presenti (per esempio "count") vanno ripassati con il loro id
+    # metrics that already exist (for example "count") must be sent again with their id
     existing_ids = {m["metric_name"]: m["id"] for m in detail["metrics"]}
     wanted = [{**m, **({"id": existing_ids[m["metric_name"]]} if m["metric_name"] in existing_ids else {})} for m in metrics]
     api.call(
@@ -138,7 +139,7 @@ def ensure_chart(api, ds_id, name, viz_type, form):
 
 
 def build_position(chart_ids):
-    """Due grafici per riga, su una griglia a 12 colonne."""
+    """Two charts per row, on a 12 column grid."""
     position = {
         "DASHBOARD_VERSION_KEY": "v2",
         "ROOT_ID": {"type": "ROOT", "id": "ROOT_ID", "children": ["GRID_ID"]},
@@ -220,7 +221,7 @@ def main():
     parser.add_argument("--base", default="http://localhost:8088")
     parser.add_argument("--user", default="admin")
     parser.add_argument("--password", default="admin")
-    parser.add_argument("--db-host", default="db-light", help="host di Postgres: db-light (compose light) o db (compose classico)")
+    parser.add_argument("--db-host", default="db-light", help="Postgres host: db-light (light compose file) or db (classic docker-compose.yml)")
     args = parser.parse_args()
 
     api = Api(args.base, args.user, args.password)
@@ -249,13 +250,13 @@ def main():
             api, sales_id, f"{CHART_PREFIX} Big Number", "pop_kpi",
             {"metric": "sum_sales", "adhoc_filters": flt, "row_limit": 1000},
         ),
-        f"{CHART_PREFIX} Line giorno": ensure_chart(
-            api, sales_id, f"{CHART_PREFIX} Line giorno", "echarts_timeseries_line",
+        f"{CHART_PREFIX} Line daily": ensure_chart(
+            api, sales_id, f"{CHART_PREFIX} Line daily", "echarts_timeseries_line",
             {"x_axis": "order_date", "time_grain_sqla": "P1D", "metrics": ["sum_sales"], "groupby": [],
              "adhoc_filters": flt, "row_limit": 10000, "show_legend": True, "rich_tooltip": True},
         ),
-        f"{CHART_PREFIX} Bar mese": ensure_chart(
-            api, sales_id, f"{CHART_PREFIX} Bar mese", "echarts_timeseries_bar",
+        f"{CHART_PREFIX} Bar monthly": ensure_chart(
+            api, sales_id, f"{CHART_PREFIX} Bar monthly", "echarts_timeseries_bar",
             {"x_axis": "order_date", "time_grain_sqla": "P1M", "metrics": ["sum_sales"], "groupby": [],
              "adhoc_filters": flt, "row_limit": 10000, "show_legend": True, "rich_tooltip": True},
         ),

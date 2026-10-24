@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Carica i dati sintetici di synthetic-data-generator.py in un database PostgreSQL con
-colonne tipizzate (DATE e TIMESTAMP), adatte ai filtri temporali di Superset.
+Loads the synthetic data of synthetic-data-generator.py into a PostgreSQL database
+with typed columns (DATE and TIMESTAMP), suited to Superset time filters.
 
-Uso (dentro il container di Superset, dove psycopg2 e' gia' installato):
+Usage (inside the Superset container, where psycopg2 is already installed):
     python load-fixtures-postgres.py --host db-light --user superset --password superset --database pcdata
 
-Il database viene creato se manca. Le tabelle vengono ricreate a ogni esecuzione.
-Nessun dato reale: solo i dati casuali con seme fisso del generatore.
+The database is created if missing. The tables are recreated on every run.
+No real data: only the random data of the generator, with a fixed seed.
 """
 
 import argparse
@@ -37,7 +37,7 @@ def ensure_database(args):
         cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (args.database,))
         if cur.fetchone() is None:
             cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(args.database)))
-            print(f"Database {args.database} creato")
+            print(f"Database {args.database} created")
     conn.close()
 
 
