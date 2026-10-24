@@ -1,0 +1,142 @@
+{
+    "generated_at":  "2026-10-24T18:19:52Z",
+    "files":  {
+                  "superset-frontend/src/filters/components/PeriodCompare/controlPanel.ts":  {
+                                                                                                 "upstream_sha256":  null,
+                                                                                                 "status":  "added"
+                                                                                             },
+                  "superset/common/query_object.py":  {
+                                                          "upstream_sha256":  "0E4487C70C6B8048FC290713EA57AA5CBE7B83F5ED750E493970568D5468AFAB",
+                                                          "status":  "modified"
+                                                      },
+                  "superset-frontend/plugins/plugin-chart-pivot-table/src/plugin/transformProps.ts":  {
+                                                                                                          "upstream_sha256":  "7F0671CCCE3C1C00B2F712F0A1F37B5BE6FAD272FC5E84C9F50DC77653586E3F",
+                                                                                                          "status":  "modified"
+                                                                                                      },
+                  "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/DefaultValue.tsx":  {
+                                                                                                                                         "upstream_sha256":  "C8F7225C76AA35DA6671A60A2D2F4AC13200349CAA123132DB1CD09873BB6F4F",
+                                                                                                                                         "status":  "modified"
+                                                                                                                                     },
+                  "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/constants.ts":  {
+                                                                                                                                     "upstream_sha256":  "40FE23BF65B9D353930768E96C51DC66BD9CBC7CCF3DBDCEB7112D33803BAE2C",
+                                                                                                                                     "status":  "modified"
+                                                                                                                                 },
+                  "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/FiltersConfigForm.tsx":  {
+                                                                                                                                              "upstream_sha256":  "C512BF074FF1DBAEB722669A2ED03572C87604136CB1C4EDDCCC7A2BE78D0DF2",
+                                                                                                                                              "status":  "modified"
+                                                                                                                                          },
+                  "superset/translations/it/LC_MESSAGES/messages.po":  {
+                                                                           "upstream_sha256":  "43D949FAE82C158A9CBA83B7B22DDF87407CE745AF9A76AB93B119520510B6A4",
+                                                                           "status":  "modified"
+                                                                       },
+                  "superset-frontend/plugins/plugin-chart-pivot-table/src/plugin/buildQuery.ts":  {
+                                                                                                      "upstream_sha256":  "3D6424D552A8D189FF979262676C878C893435CEC8659EC5B281D3A5BA7C736A",
+                                                                                                      "status":  "modified"
+                                                                                                  },
+                  "superset-frontend/packages/superset-ui-core/src/query/constants.ts":  {
+                                                                                             "upstream_sha256":  "B891A528204B028DCB74ACFA37D146D9327A48D0C6ECA6288DEE634C69C0732D",
+                                                                                             "status":  "modified"
+                                                                                         },
+                  "superset-frontend/packages/superset-ui-core/src/query/types/QueryFormData.ts":  {
+                                                                                                       "upstream_sha256":  "14B1E56643D69920F211368E698D69747F2FE35463660A7A725F0B47297E11D0",
+                                                                                                       "status":  "modified"
+                                                                                                   },
+                  "superset-frontend/src/filters/components/PeriodCompare/index.ts":  {
+                                                                                          "upstream_sha256":  null,
+                                                                                          "status":  "added"
+                                                                                      },
+                  "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/hooks/useFilterOperations.ts":  {
+                                                                                                                                   "upstream_sha256":  "AA8BF426E299D83A6FD361EEC6B63829CEEE41C806D61BB9332CBE185DC2BF6B",
+                                                                                                                                   "status":  "modified"
+                                                                                                                               },
+                  "superset-frontend/plugins/plugin-chart-echarts/src/BigNumber/BigNumberPeriodOverPeriod/transformProps.ts":  {
+                                                                                                                                   "upstream_sha256":  "153F352AAEF1B6A3A23CC8F509EBFA4FB36D3E63573EBE8F6EF681E9028C062F",
+                                                                                                                                   "status":  "modified"
+                                                                                                                               },
+                  "superset-frontend/plugins/plugin-chart-echarts/src/Timeseries/transformProps.ts":  {
+                                                                                                          "upstream_sha256":  "391421BDDD494CD9CB7D8B7EFE2B44EF719ADF742E0276188D9604ED367A7DBD",
+                                                                                                          "status":  "modified"
+                                                                                                      },
+                  "superset-frontend/src/visualizations/presets/MainPreset.ts":  {
+                                                                                     "upstream_sha256":  "8E8C28A3526E2B33DFF73E823B9CBD1DBB63E27D9762466822CBC9E23FA53FA7",
+                                                                                     "status":  "modified"
+                                                                                 },
+                  "superset-frontend/src/filters/components/PeriodCompare/PeriodCompareFilterPlugin.tsx":  {
+                                                                                                               "upstream_sha256":  null,
+                                                                                                               "status":  "added"
+                                                                                                           },
+                  "superset-frontend/packages/superset-ui-chart-controls/src/utils/index.ts":  {
+                                                                                                   "upstream_sha256":  "C76E5BDC20521C1FAD42E766B26BEDEE7CA12018B15A10B02E25E3C7738711FC",
+                                                                                                   "status":  "modified"
+                                                                                               },
+                  "superset/models/helpers.py":  {
+                                                     "upstream_sha256":  "D1237B68CA3132A9089F2FDBB118E415D1CDAA979CEB084B3ED69FCB3C8B7DAA",
+                                                     "status":  "modified"
+                                                 },
+                  "superset-frontend/src/filters/components/PeriodCompare/transformProps.ts":  {
+                                                                                                   "upstream_sha256":  null,
+                                                                                                   "status":  "added"
+                                                                                               },
+                  "superset-frontend/plugins/plugin-chart-echarts/src/BigNumber/BigNumberPeriodOverPeriod/buildQuery.ts":  {
+                                                                                                                               "upstream_sha256":  "2A7407D9BCBC7EC87840061039051A8650196167A91E73FE6E32754F9B4E705F",
+                                                                                                                               "status":  "modified"
+                                                                                                                           },
+                  "superset-frontend/packages/superset-ui-chart-controls/src/utils/applyDashboardComparison.ts":  {
+                                                                                                                      "upstream_sha256":  null,
+                                                                                                                      "status":  "added"
+                                                                                                                  },
+                  "superset/config.py":  {
+                                             "upstream_sha256":  "329BDB2DCF9AB98F1F9763CD23210FE1E1377E0F3A1516FBEA6B160D4FEF9403",
+                                             "status":  "modified"
+                                         },
+                  "superset-frontend/src/filters/components/index.ts":  {
+                                                                            "upstream_sha256":  "4150C02E749E749ED01D1BFCDF00842285CB962A540EA23EF24122E0DC640D17",
+                                                                            "status":  "modified"
+                                                                        },
+                  "superset-frontend/src/filters/components/PeriodCompare/resolveComparison.ts":  {
+                                                                                                      "upstream_sha256":  null,
+                                                                                                      "status":  "added"
+                                                                                                  },
+                  "superset/constants.py":  {
+                                                "upstream_sha256":  "BCD161C432B2545F1A5BEC8E810E885C139406F7FE328769D179508B9F29B59C",
+                                                "status":  "modified"
+                                            },
+                  "superset-frontend/src/filters/components/PeriodCompare/types.ts":  {
+                                                                                          "upstream_sha256":  null,
+                                                                                          "status":  "added"
+                                                                                      },
+                  "superset-frontend/packages/superset-ui-chart-controls/test/utils/applyDashboardComparison.test.ts":  {
+                                                                                                                            "upstream_sha256":  null,
+                                                                                                                            "status":  "added"
+                                                                                                                        },
+                  "superset-frontend/plugins/plugin-chart-echarts/src/Timeseries/buildQuery.ts":  {
+                                                                                                      "upstream_sha256":  "99CDF12432D49056629028B45507DA70DD9C45D7CE02127B98A1F92ACF3F1B66",
+                                                                                                      "status":  "modified"
+                                                                                                  },
+                  "superset-frontend/plugins/plugin-chart-table/src/buildQuery.ts":  {
+                                                                                         "upstream_sha256":  "EAE2E64F2A1132049E14A0CB93783E43571A2800D448CAA3366CCFE306620135",
+                                                                                         "status":  "modified"
+                                                                                     },
+                  "superset-frontend/packages/superset-ui-chart-controls/src/sections/timeComparison.tsx":  {
+                                                                                                                "upstream_sha256":  "289BEFDB40F8C4718AB10D4DFDF838D95F4A2EC0BEAA50CECD8C6686AFC11A11",
+                                                                                                                "status":  "modified"
+                                                                                                            },
+                  "superset-frontend/plugins/plugin-chart-table/src/transformProps.ts":  {
+                                                                                             "upstream_sha256":  "9FA55C9B1343688BBBDBF8576647855CC013C41FD9D3499E707DA5D7C4606022",
+                                                                                             "status":  "modified"
+                                                                                         },
+                  "superset-frontend/packages/superset-ui-chart-controls/src/operators/utils/isTimeComparison.ts":  {
+                                                                                                                        "upstream_sha256":  "233729E81D849E6461FE1AD21CF92AD3B909733CF7DDF97AF6D6E49CE2B8CB6A",
+                                                                                                                        "status":  "modified"
+                                                                                                                    },
+                  "superset-frontend/src/constants.ts":  {
+                                                             "upstream_sha256":  "14DC50858EFFD2C9F2FEC767997DAD8FDCBBD6451EA61750B892B757EE76BF4F",
+                                                             "status":  "modified"
+                                                         },
+                  "superset-frontend/src/filters/components/PeriodCompare/resolveComparison.test.ts":  {
+                                                                                                           "upstream_sha256":  null,
+                                                                                                           "status":  "added"
+                                                                                                       }
+              },
+    "version":  "6.1.0"
+}
