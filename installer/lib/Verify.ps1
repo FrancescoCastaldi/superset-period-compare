@@ -1,6 +1,27 @@
 # installer/lib/Verify.ps1
 # Verifies target Superset tree compatibility, check status, and ensures user plugins safety.
 
+function Get-LfNormalizedHash {
+    # SHA256 del contenuto con CRLF ridotto a LF. Un clone Git su Windows con
+    # core.autocrlf=true ha i file in CRLF, mentre gli hash di compat.json e del
+    # payload sono calcolati sul contenuto con LF.
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $bytes = [System.IO.File]::ReadAllBytes($Path)
+    $normalized = New-Object System.IO.MemoryStream
+    for ($i = 0; $i -lt $bytes.Length; $i++) {
+        if ($bytes[$i] -eq 13 -and ($i + 1) -lt $bytes.Length -and $bytes[$i + 1] -eq 10) { continue }
+        $normalized.WriteByte($bytes[$i])
+    }
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ([System.BitConverter]::ToString($sha.ComputeHash($normalized.ToArray()))).Replace("-", "")
+    } finally {
+        $sha.Dispose()
+        $normalized.Dispose()
+    }
+}
+
 function Test-PeriodCompareInstallation {
     [CmdletBinding()]
     param(
@@ -65,11 +86,11 @@ function Test-PeriodCompareInstallation {
             continue
         }
 
-        $targetHash = (Get-FileHash -Path $targetFile -Algorithm SHA256).Hash
+        $targetHash = Get-LfNormalizedHash -Path $targetFile
 
         # Check if already identical to payload
         if (Test-Path $payloadFile) {
-            $payloadHash = (Get-FileHash -Path $payloadFile -Algorithm SHA256).Hash
+            $payloadHash = Get-LfNormalizedHash -Path $payloadFile
             if ($targetHash -eq $payloadHash) {
                 $results.AlreadyPatched++
                 $results.Details += @{ Path = $relPath; Status = "AlreadyPatched" }

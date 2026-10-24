@@ -171,3 +171,56 @@ Describe "Superset Period Compare Installer Validation Suite" {
         }
     }
 }
+
+
+Describe "Verify: riconoscimento upstream indipendente dalle fine riga" {
+
+    $VerifyScript = Join-Path (Resolve-Path (Join-Path $PSScriptRoot "..")) "installer\lib\Verify.ps1"
+    . $VerifyScript
+
+    function New-VerifyFixture {
+        param([string]$TargetContent, [string]$PayloadContent, [string]$UpstreamLfContent)
+        $root = Join-Path $env:TEMP "pc_verify_$([guid]::NewGuid().ToString('N'))"
+        $target = Join-Path $root "target"
+        $payload = Join-Path $root "payload"
+        New-Item -ItemType Directory -Path $target, $payload -Force | Out-Null
+        [System.IO.File]::WriteAllText((Join-Path $target "a.txt"), $TargetContent, [System.Text.UTF8Encoding]::new($false))
+        [System.IO.File]::WriteAllText((Join-Path $payload "a.txt"), $PayloadContent, [System.Text.UTF8Encoding]::new($false))
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        $hash = ([System.BitConverter]::ToString($sha.ComputeHash([System.Text.UTF8Encoding]::new($false).GetBytes($UpstreamLfContent)))).Replace("-", "")
+        $compat = @{ version = "6.1.0"; files = @{ "a.txt" = @{ status = "modified"; upstream_sha256 = $hash } } }
+        $compatFile = Join-Path $root "compat.json"
+        [System.IO.File]::WriteAllText($compatFile, ($compat | ConvertTo-Json -Depth 5), [System.Text.UTF8Encoding]::new($false))
+        return @{ Root = $root; Target = $target; Payload = $payload; Compat = $compatFile }
+    }
+
+    It "riconosce come upstream un file con fine riga CRLF il cui hash LF e in compat.json" {
+        $fx = New-VerifyFixture -TargetContent "riga1`r`nriga2`r`n" -PayloadContent "patched`n" -UpstreamLfContent "riga1`nriga2`n"
+        $r = Test-PeriodCompareInstallation -TargetDir $fx.Target -CompatFile $fx.Compat -PayloadDir $fx.Payload
+        $r.MatchesUpstream | Should Be 1
+        $r.ModifiedOrCustom | Should Be 0
+        Remove-Item $fx.Root -Recurse -Force
+    }
+
+    It "riconosce come upstream un file con fine riga LF" {
+        $fx = New-VerifyFixture -TargetContent "riga1`nriga2`n" -PayloadContent "patched`n" -UpstreamLfContent "riga1`nriga2`n"
+        $r = Test-PeriodCompareInstallation -TargetDir $fx.Target -CompatFile $fx.Compat -PayloadDir $fx.Payload
+        $r.MatchesUpstream | Should Be 1
+        Remove-Item $fx.Root -Recurse -Force
+    }
+
+    It "segnala come modificato un file con contenuto realmente diverso" {
+        $fx = New-VerifyFixture -TargetContent "riga1`r`nMODIFICATA`r`n" -PayloadContent "patched`n" -UpstreamLfContent "riga1`nriga2`n"
+        $r = Test-PeriodCompareInstallation -TargetDir $fx.Target -CompatFile $fx.Compat -PayloadDir $fx.Payload
+        $r.MatchesUpstream | Should Be 0
+        $r.ModifiedOrCustom | Should Be 1
+        Remove-Item $fx.Root -Recurse -Force
+    }
+
+    It "riconosce come gia patchato un file CRLF uguale al payload LF" {
+        $fx = New-VerifyFixture -TargetContent "patched`r`nlinea2`r`n" -PayloadContent "patched`nlinea2`n" -UpstreamLfContent "riga1`nriga2`n"
+        $r = Test-PeriodCompareInstallation -TargetDir $fx.Target -CompatFile $fx.Compat -PayloadDir $fx.Payload
+        $r.AlreadyPatched | Should Be 1
+        Remove-Item $fx.Root -Recurse -Force
+    }
+}

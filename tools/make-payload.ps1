@@ -56,8 +56,19 @@ foreach ($line in $diffLines) {
     if ($status -eq "M") {
         $tempOriginal = [System.IO.Path]::GetTempFileName()
         try {
-            git -C $WorktreePath show "$($BaseTag):$relPath" | Set-Content -Path $tempOriginal -NoNewline -Encoding utf8
-            $origHash = (Get-FileHash -Path $tempOriginal -Algorithm SHA256).Hash
+            # Il blob upstream va scritto byte per byte: la pipe di PowerShell con
+            # Set-Content -NoNewline toglie gli a capo e aggiunge il BOM, e l'hash
+            # non coinciderebbe mai con quello di un file reale.
+            Start-Process -FilePath git -ArgumentList @("-C", $WorktreePath, "cat-file", "blob", "$($BaseTag):$relPath") -RedirectStandardOutput $tempOriginal -NoNewWindow -Wait
+            $bytes = [System.IO.File]::ReadAllBytes($tempOriginal)
+            $lf = New-Object System.IO.MemoryStream
+            for ($i = 0; $i -lt $bytes.Length; $i++) {
+                if ($bytes[$i] -eq 13 -and ($i + 1) -lt $bytes.Length -and $bytes[$i + 1] -eq 10) { continue }
+                $lf.WriteByte($bytes[$i])
+            }
+            $sha = [System.Security.Cryptography.SHA256]::Create()
+            $origHash = ([System.BitConverter]::ToString($sha.ComputeHash($lf.ToArray()))).Replace("-", "")
+            $sha.Dispose(); $lf.Dispose()
             $compatMap.files[$relPath] = @{
                 status = "modified"
                 upstream_sha256 = $origHash
