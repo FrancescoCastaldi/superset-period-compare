@@ -7,11 +7,13 @@ Esecutore previsto: Sonnet 5.5 (agenti Sonnet, con Haiku per lavoro meccanico)
 
 ---
 
-> **Stato Attuazione**: 🟢 **100% COMPLETATO & RILASCIATO (v0.1.0)**
-> - Backend Superset: 63/63 pytest passati
+> **Stato Attuazione**: 🟢 **Fasi 0..11 completate, v0.1.0** (verificato il 24/10/2026 rieseguendo le suite)
+> - Backend Superset: 17/17 pytest passati (3 in `test_period_compare_backend.py`, 14 in `test_time_shifts.py`); sul gruppo piu ampio `common`, `models`, `pandas_postprocessing`, `utils/test_core.py` passano 470 test su 472, i 2 falliti (`test_dttm_sql_literal`) dipendono dal fuso orario del PC e non dalla patch
 > - Frontend Arithmetic Engine: 28/28 test passati
 > - Frontend Contracts: 5/5 test passati
 > - Pester Installer Suite: 5/5 contesti passati (Clean, Custom plugins protection, Auto-detect, Rollback byte-for-byte)
+> - Non coperto: compilazione del frontend (i test dell'installer usano `-SkipBuild`) e jest sui plugin
+> - Test copiati nel repository in `tests/` (vedi `tests/README.md`)
 > - Repository Privata GitHub: https://github.com/FrancescoCastaldi/superset-period-compare (isPrivate: true)
 
 ---

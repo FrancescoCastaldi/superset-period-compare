@@ -52,6 +52,10 @@ Per disinstallare in qualsiasi momento e ripristinare Superset allo stato origin
 uninstall.bat D:\Percorso\Al\Tuo\Superset
 ```
 
+## Test
+
+Il repository include le suite in `tests/`: 17 test backend pytest, 28 + 5 test frontend eseguibili con solo Node e 5 contesti Pester per l'installer. I comandi per eseguirle sono in [tests/README.md](tests/README.md). La compilazione del frontend non e coperta dai test.
+
 ## Struttura della documentazione
 
 - [Architettura tecnica e decisioni di design](ARCHITETTURA.md): flussi dati, ciclo di vita delle query e logica di allineamento temporale.

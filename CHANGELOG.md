@@ -21,10 +21,14 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/lang/it/).
   - Motore PowerShell modulare `installer/PeriodCompare.ps1` con librerie `Backup.ps1`, `Verify.ps1`, `Patch.ps1`, `Restore.ps1`, `BuildFrontend.ps1`.
   - Riconoscimento automatico della cartella di progetto: discovery intelligente della root di Superset su cartella chiamante (da script batch), cartella corrente, cartelle adiacenti e worktree (`_work`, workspace) con selezione prioritaria automatica dei progetti utente personalizzati.
   - Salvaguardia assoluta dei plugin personalizzati utente (`superset-frontend/plugins/superset-plugin-*`) con merge selettivo tra marcatori `period-compare:begin/end` in `MainPreset.ts`.
-- **Suite di Test Automatizzata**:
-  - 63 test unitari backend pytest passati al 100%.
-  - 28 test di logica temporale frontend passati al 100%.
-  - 5 test di contratto interfaccia `applyDashboardComparison` passati al 100%.
-  - Test suite Pester dell'installer passata al 100% su albero pulito e personalizzato.
+- **Suite di Test Automatizzata** (cartella `tests/`, istruzioni in `tests/README.md`):
+  - 17 test backend pytest passati (3 in `test_period_compare_backend.py`, 14 in `test_time_shifts.py`, file upstream esteso).
+  - 28 test di logica temporale frontend passati.
+  - 5 test di contratto interfaccia `applyDashboardComparison` passati.
+  - Suite Pester dell'installer passata (5 contesti) su albero pulito e personalizzato.
+  - Limiti noti: la compilazione del frontend non e coperta dai test (`-SkipBuild`), e `verify` non riconosce i file upstream su alberi con fine riga CRLF.
+
+### Fixed
+- `BigNumberPeriodOverPeriod/transformProps.ts` legge ora `formData` restituito da `applyDashboardComparison` invece di `rawFormData`, cosi il confronto di dashboard viene applicato anche all'etichetta e agli offset del Big Number.
 - **Documentazione Completa**:
   - `README.md`, `ARCHITETTURA.md`, `INSTALLAZIONE.md`, `AGGIORNARE_VERSIONE.md`, `MIGRARE_DA_VISTE_CARTESIANE.md`, `docs/CONTRATTO.md`.
