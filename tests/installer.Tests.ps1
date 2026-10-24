@@ -65,19 +65,23 @@ Describe "Superset Period Compare Installer Validation Suite" {
     }
 
     Context "Case 3: Non-invasiveness and user custom plugin protection" {
-        It "Preserves user custom plugins and identical hashes across install and uninstall" {
+        It "Preserves user custom plugins and identical hashes across verify" {
             $customWorktree = "D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-custom"
             if (Test-Path $customWorktree) {
                 $userPluginsDir = Join-Path $customWorktree "superset-frontend\plugins"
                 $userPlugins = Get-ChildItem -Path $userPluginsDir -Directory -Filter "superset-plugin-*"
                 ($userPlugins.Count -gt 0) | Should Be $true
 
-                # Capture hashes of all user plugin files before
+                # Capture hashes of entry files in user plugins
                 $beforeHashes = @{}
                 foreach ($plugin in $userPlugins) {
-                    $files = Get-ChildItem -Path $plugin.FullName -Recurse -File
-                    foreach ($f in $files) {
-                        $beforeHashes[$f.FullName] = (Get-FileHash $f.FullName).Hash
+                    $pkgJson = Join-Path $plugin.FullName "package.json"
+                    if (Test-Path $pkgJson) {
+                        $beforeHashes[$pkgJson] = (Get-FileHash $pkgJson).Hash
+                    }
+                    $indexTs = Join-Path $plugin.FullName "src\index.ts"
+                    if (Test-Path $indexTs) {
+                        $beforeHashes[$indexTs] = (Get-FileHash $indexTs).Hash
                     }
                 }
 
@@ -89,6 +93,80 @@ Describe "Superset Period Compare Installer Validation Suite" {
                     $currentHash = (Get-FileHash $path).Hash
                     $currentHash | Should Be $beforeHashes[$path]
                 }
+            }
+        }
+    }
+
+    Context "Case 4: Automatic project directory recognition" {
+        It "Automatically detects candidate project when TargetDir is omitted" {
+            $customWorktree = "D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-custom"
+            if (Test-Path $customWorktree) {
+                $env:CALLER_DIR = $customWorktree
+                try {
+                    # Verify action runs with no TargetDir passed, relying on auto-detection
+                    & $InstallerScript -Action Verify
+                    $? | Should Be $true
+                } finally {
+                    $env:CALLER_DIR = $null
+                }
+            }
+        }
+    }
+
+    Context "Case 5: Full End-to-End Install, Verify, and Rollback on existing project" {
+        It "Applies patch to existing custom project, protects user plugins, and restores cleanly" {
+            $customWorktree = "D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-custom"
+            if (Test-Path $customWorktree) {
+                $presetPath = Join-Path $customWorktree "superset-frontend\src\visualizations\presets\MainPreset.ts"
+                $origPresetHash = (Get-FileHash $presetPath).Hash
+
+                # Record hashes of user custom plugins
+                $userPluginsDir = Join-Path $customWorktree "superset-frontend\plugins"
+                $userPlugins = Get-ChildItem -Path $userPluginsDir -Directory -Filter "superset-plugin-*"
+                $pluginFiles = @{}
+                foreach ($p in $userPlugins) {
+                    Get-ChildItem -Path $p.FullName -Recurse -File | ForEach-Object {
+                        $pluginFiles[$_.FullName] = (Get-FileHash $_.FullName).Hash
+                    }
+                }
+
+                # 1. Install patch with auto-build skip
+                & $InstallerScript -Action Install -TargetDir $customWorktree -SkipBuild
+
+                # 2. Check that MainPreset has markers and user plugins
+                $patchedPreset = Get-Content $presetPath -Raw
+                ($patchedPreset -like "*period-compare:begin*") | Should Be $true
+                ($patchedPreset -like "*PeriodCompareFilterPlugin*") | Should Be $true
+                ($patchedPreset -like "*HierarchicalTableChartPlugin*") | Should Be $true
+                ($patchedPreset -like "*StratumBarChartPlugin*") | Should Be $true
+
+                # Check user plugin files are untouched
+                foreach ($fp in $pluginFiles.Keys) {
+                    (Get-FileHash $fp).Hash | Should Be $pluginFiles[$fp]
+                }
+
+                # 3. Test idempotency: re-running install should not duplicate markers
+                & $InstallerScript -Action Install -TargetDir $customWorktree -SkipBuild
+                $secondPreset = Get-Content $presetPath -Raw
+                $markerCount = ([regex]::Matches($secondPreset, "period-compare:begin")).Count
+                $markerCount | Should Be 2
+
+                # 4. Verify action reports valid state
+                & $InstallerScript -Action Verify -TargetDir $customWorktree
+
+                # 5. Uninstall and verify byte-for-byte rollback
+                & $InstallerScript -Action Uninstall -TargetDir $customWorktree
+                $restoredPresetHash = (Get-FileHash $presetPath).Hash
+                $restoredPresetHash | Should Be $origPresetHash
+
+                # User plugins still 100% untouched
+                foreach ($fp in $pluginFiles.Keys) {
+                    (Get-FileHash $fp).Hash | Should Be $pluginFiles[$fp]
+                }
+
+                # PeriodCompare directory should be cleaned up
+                $pcFilterDir = Join-Path $customWorktree "superset-frontend\src\filters\components\PeriodCompare"
+                (Test-Path $pcFilterDir) | Should Be $false
             }
         }
     }

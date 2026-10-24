@@ -7,7 +7,7 @@ Questa guida illustra come dismettere le vecchie viste di database con self-join
 Per confrontare periodi temporali in Superset, molti team implementavano viste SQL con strutture simili a:
 
 ```sql
--- VECCHIO APPROCCIO (PROBLEMATICO):
+/* VECCHIO APPROCCIO (PROBLEMATICO): */
 SELECT 
     t1.id,
     t1.data_evento AS data_riferimento,
@@ -30,7 +30,7 @@ LEFT JOIN tabella_eventi t2
 Con Superset Period Compare, il dataset su Superset punta direttamente alla **tabella nativa semplice** (o vista pulita senza join temporali):
 
 ```sql
--- NUOVO APPROCCIO (SEMPLICE, PULITO E VELOCE):
+/* NUOVO APPROCCIO (SEMPLICE, PULITO E VELOCE): */
 SELECT 
     id,
     data_evento,

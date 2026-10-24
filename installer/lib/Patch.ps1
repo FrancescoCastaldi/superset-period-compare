@@ -18,9 +18,12 @@ function Merge-MainPreset {
         return $true
     }
 
+    # Detect newline style of the file (\r\n vs \n)
+    $nl = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }
+
     # 1. Add import
     $importTarget = "TimeGrainFilterPlugin,"
-    $importSnippet = "TimeGrainFilterPlugin,`n  // period-compare:begin`n  PeriodCompareFilterPlugin,`n  // period-compare:end"
+    $importSnippet = "TimeGrainFilterPlugin,$nl  // period-compare:begin$nl  PeriodCompareFilterPlugin,$nl  // period-compare:end"
 
     if (-not $content.Contains($importTarget)) {
         throw "Could not locate import anchor in MainPreset.ts"
@@ -30,7 +33,7 @@ function Merge-MainPreset {
 
     # 2. Add plugin instantiation
     $pluginTarget = "new TimeFilterPlugin().configure({ key: FilterPlugins.Time }),"
-    $pluginSnippet = "new TimeFilterPlugin().configure({ key: FilterPlugins.Time }),`n        // period-compare:begin`n        new PeriodCompareFilterPlugin().configure({`n          key: FilterPlugins.PeriodCompare,`n        }),`n        // period-compare:end"
+    $pluginSnippet = "new TimeFilterPlugin().configure({ key: FilterPlugins.Time }),$nl        // period-compare:begin$nl        new PeriodCompareFilterPlugin().configure({$nl          key: FilterPlugins.PeriodCompare,$nl        }),$nl        // period-compare:end"
 
     if (-not $newContent.Contains($pluginTarget)) {
         throw "Could not locate plugin instantiation anchor in MainPreset.ts"
@@ -75,7 +78,7 @@ function Install-PeriodComparePatch {
 
         # MainPreset.ts is merged rather than blind-overwritten to protect user plugins
         if ($relPath -like "*MainPreset.ts") {
-            Merge-MainPreset -MainPresetPath $targetFile -DryRun:$DryRun
+            Merge-MainPreset -MainPresetPath $targetFile -DryRun:$DryRun | Out-Null
             $appliedCount++
             continue
         }

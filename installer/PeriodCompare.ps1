@@ -18,20 +18,112 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Auto-detect target directory if not specified
-if ([string]::IsNullOrWhiteSpace($TargetDir)) {
-    # Check parent directory or standard paths
-    $candidateParents = @(
-        (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path,
-        (Resolve-Path (Join-Path $PSScriptRoot "..\..\..\..\Repositories\superset-6.1.0")).Path,
-        "D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-pc"
+function Resolve-SupersetTargetDirectory {
+    param(
+        [string]$ExplicitTarget
     )
-    foreach ($cand in $candidateParents) {
-        if (Test-Path (Join-Path $cand "superset-frontend\src\visualizations\presets\MainPreset.ts")) {
-            $TargetDir = $cand
-            break
+
+    $isSuperset = {
+        param([string]$path)
+        if ([string]::IsNullOrWhiteSpace($path) -or (-not (Test-Path $path))) { return $false }
+        $hasPreset = Test-Path (Join-Path $path "superset-frontend\src\visualizations\presets\MainPreset.ts")
+        $hasBackend = (Test-Path (Join-Path $path "superset\models\helpers.py")) -or (Test-Path (Join-Path $path "superset\config.py"))
+        return ($hasPreset -and $hasBackend)
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($ExplicitTarget)) {
+        if (& $isSuperset $ExplicitTarget) {
+            return (Resolve-Path $ExplicitTarget).Path
+        } else {
+            Write-Warning "Specified target '$ExplicitTarget' may not be a complete Superset project."
+            return (Resolve-Path $ExplicitTarget).Path
         }
     }
+
+    $rawCandidates = [System.Collections.Generic.List[string]]::new()
+
+    # 1. Caller working directory (from CALLER_DIR env var set by batch wrappers)
+    if (-not [string]::IsNullOrWhiteSpace($env:CALLER_DIR)) {
+        $rawCandidates.Add($env:CALLER_DIR)
+    }
+
+    # 2. Current working directory
+    $rawCandidates.Add((Get-Location).Path)
+
+    # 3. Sibling folders and worktrees
+    $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+    $parentReposDir = Split-Path $repoRoot -Parent
+    if (Test-Path $parentReposDir) {
+        Get-ChildItem -Path $parentReposDir -Directory | ForEach-Object {
+            $rawCandidates.Add($_.FullName)
+        }
+        $workDir = Join-Path $parentReposDir "_work"
+        if (Test-Path $workDir) {
+            Get-ChildItem -Path $workDir -Directory | ForEach-Object {
+                $rawCandidates.Add($_.FullName)
+            }
+        }
+    }
+
+    # 4. Standard local workspace locations
+    $rawCandidates.Add("D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-custom")
+    $rawCandidates.Add("D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-pc")
+    $rawCandidates.Add("D:\Actual\03_Sviluppo_Software\Repositories\superset-6.1.0")
+
+    $scored = @()
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($cand in $rawCandidates) {
+        if ([string]::IsNullOrWhiteSpace($cand) -or (-not (Test-Path $cand))) { continue }
+        $resolved = (Resolve-Path $cand).Path
+        if ($seen.Contains($resolved)) { continue }
+        $seen.Add($resolved) | Out-Null
+
+        if (& $isSuperset $resolved) {
+            $score = 10
+            if (-not [string]::IsNullOrWhiteSpace($env:CALLER_DIR) -and ($resolved -eq (Resolve-Path $env:CALLER_DIR).Path)) {
+                $score += 100
+            }
+            if ($resolved -eq (Get-Location).Path) {
+                $score += 80
+            }
+            $pluginsDir = Join-Path $resolved "superset-frontend\plugins"
+            $hasCustomPlugins = $false
+            if (Test-Path $pluginsDir) {
+                $customPlugins = Get-ChildItem -Path $pluginsDir -Directory -Filter "superset-plugin-*"
+                if ($customPlugins.Count -gt 0) {
+                    $hasCustomPlugins = $true
+                    $score += 50
+                }
+            }
+            if ($resolved -like "*custom*") { $score += 30 }
+            if ($resolved -like "*_work*") { $score += 20 }
+
+            $scored += [PSCustomObject]@{
+                Path = $resolved
+                Score = $score
+                HasCustomPlugins = $hasCustomPlugins
+            }
+        }
+    }
+
+    if ($scored.Count -eq 0) {
+        return $null
+    }
+
+    $sorted = $scored | Sort-Object Score -Descending
+
+    Write-Host "[AUTO-DETECT] Discovered $($sorted.Count) Superset project location(s):" -ForegroundColor Cyan
+    foreach ($item in $sorted) {
+        $tag = if ($item.HasCustomPlugins) { " (Custom user plugins detected)" } else { "" }
+        $marker = if ($item.Path -eq $sorted[0].Path) { " [SELECTED]" } else { "" }
+        Write-Host "  -> $($item.Path)$tag$marker" -ForegroundColor $(if ($marker) { "Green" } else { "DarkGray" })
+    }
+
+    return $sorted[0].Path
 }
+
+$TargetDir = Resolve-SupersetTargetDirectory -ExplicitTarget $TargetDir
 
 if ([string]::IsNullOrWhiteSpace($TargetDir) -or (-not (Test-Path $TargetDir))) {
     Write-Error "Could not automatically determine Superset target directory. Please specify -TargetDir <path>."
@@ -82,7 +174,7 @@ switch ($Action) {
         if ($report.UserPlugins.Count -gt 0) {
             Write-Host "Protected user plugins: $($report.UserPlugins -join ', ')" -ForegroundColor Green
         }
-        Install-PeriodComparePatch -TargetDir $TargetDir -PayloadDir $PayloadDir -DryRun
+        Install-PeriodComparePatch -TargetDir $TargetDir -PayloadDir $PayloadDir -DryRun | Out-Null
         Write-Host "Dry-Run simulation completed cleanly." -ForegroundColor Green
         break
     }
@@ -105,7 +197,7 @@ switch ($Action) {
 
         # Apply patch
         Write-Host "`nStep 2/3: Applying Period Compare patch..." -ForegroundColor Cyan
-        Install-PeriodComparePatch -TargetDir $TargetDir -PayloadDir $PayloadDir
+        Install-PeriodComparePatch -TargetDir $TargetDir -PayloadDir $PayloadDir | Out-Null
 
         # Build frontend assets if not skipped
         Write-Host "`nStep 3/3: Frontend compilation..." -ForegroundColor Cyan

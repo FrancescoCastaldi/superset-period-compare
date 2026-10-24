@@ -20,6 +20,13 @@ function Invoke-PeriodCompareFrontendBuild {
         return $false
     }
 
+    $nodeModulesDir = Join-Path $frontendDir "node_modules"
+    if (-not (Test-Path $nodeModulesDir)) {
+        Write-Host "Note: node_modules directory not present in $frontendDir." -ForegroundColor Yellow
+        Write-Host "Skipping automatic build. When ready, run 'npm ci --legacy-peer-deps' and 'npm run build'." -ForegroundColor Yellow
+        return $true
+    }
+
     Write-Host "Starting frontend build in $frontendDir..." -ForegroundColor Cyan
     Write-Host "Configuring NODE_OPTIONS=--max-old-space-size=8192..."
     $env:NODE_OPTIONS = "--max-old-space-size=8192"

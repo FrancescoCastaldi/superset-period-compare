@@ -19,6 +19,7 @@ e questo progetto aderisce a [Semantic Versioning](https://semver.org/lang/it/).
 - **Toolchain di Installazione Idempotente**:
   - `install.bat`, `uninstall.bat`, `verify.bat`, `dry-run.bat`.
   - Motore PowerShell modulare `installer/PeriodCompare.ps1` con librerie `Backup.ps1`, `Verify.ps1`, `Patch.ps1`, `Restore.ps1`, `BuildFrontend.ps1`.
+  - Riconoscimento automatico della cartella di progetto: discovery intelligente della root di Superset su cartella chiamante (da script batch), cartella corrente, cartelle adiacenti e worktree (`_work`, workspace) con selezione prioritaria automatica dei progetti utente personalizzati.
   - Salvaguardia assoluta dei plugin personalizzati utente (`superset-frontend/plugins/superset-plugin-*`) con merge selettivo tra marcatori `period-compare:begin/end` in `MainPreset.ts`.
 - **Suite di Test Automatizzata**:
   - 63 test unitari backend pytest passati al 100%.

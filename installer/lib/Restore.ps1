@@ -37,6 +37,7 @@ function Restore-PeriodCompareBackup {
 
     $restoredCount = 0
     $removedCount = 0
+    $emptyFoldersToCheck = [System.Collections.Generic.List[string]]::new()
 
     foreach ($fileEntry in $manifest.files) {
         $relPath = $fileEntry.path
@@ -61,6 +62,10 @@ function Restore-PeriodCompareBackup {
             $restoredCount++
         } elseif ($fileEntry.action -eq "added") {
             if (Test-Path $targetFile) {
+                $parentDir = Split-Path $targetFile -Parent
+                if ($parentDir -and (-not $emptyFoldersToCheck.Contains($parentDir))) {
+                    $emptyFoldersToCheck.Add($parentDir)
+                }
                 if ($DryRun) {
                     Write-Host "[DRY-RUN] Would remove added file: $relPath" -ForegroundColor Cyan
                 } else {
@@ -68,6 +73,16 @@ function Restore-PeriodCompareBackup {
                     Write-Host "Removed: $relPath" -ForegroundColor Yellow
                 }
                 $removedCount++
+            }
+        }
+    }
+
+    # Clean up empty parent directories left behind
+    if (-not $DryRun) {
+        foreach ($dir in ($emptyFoldersToCheck | Sort-Object Length -Descending)) {
+            if ((Test-Path $dir) -and ((Get-ChildItem -Path $dir -Force).Count -eq 0)) {
+                Remove-Item -Path $dir -Force
+                Write-Host "Removed empty directory: $dir" -ForegroundColor DarkGray
             }
         }
     }
