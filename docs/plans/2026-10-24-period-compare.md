@@ -7,6 +7,15 @@ Esecutore previsto: Sonnet 5.5 (agenti Sonnet, con Haiku per lavoro meccanico)
 
 ---
 
+> **Stato Attuazione**: 🟢 **100% COMPLETATO & RILASCIATO (v0.1.0)**
+> - Backend Superset: 63/63 pytest passati
+> - Frontend Arithmetic Engine: 28/28 test passati
+> - Frontend Contracts: 5/5 test passati
+> - Pester Installer Suite: 5/5 contesti passati (Clean, Custom plugins protection, Auto-detect, Rollback byte-for-byte)
+> - Repository Privata GitHub: https://github.com/FrancescoCastaldi/superset-period-compare (isPrivate: true)
+
+---
+
 ## 0. Principio guida: soluzione universale (correzione richiesta dall'utente)
 
 Il progetto NON e' per un cliente. Il caso sanitario su SQL Server usato per capire il problema e' solo un esempio e non deve comparire nel codice, nei nomi dei file, nelle patch, nei test o nel titolo della documentazione. Requisiti di universalita':
@@ -377,86 +386,86 @@ Regole per gli agenti: ciascuno parte con il proprio perimetro e il contratto in
 ## 7. Fasi e task (TDD, un commit per task)
 
 ### Fase 0: Ambiente e baseline (Agente E)
-- [ ] 0.1 Controllare risorse: RAM, spazio, Python 3.11 con `uv`, Node 20 (versione del tuo `Dockerfile`).
-- [ ] 0.2 Creare un checkout pulito con `git worktree add` dal tag `6.1.0` del tuo clone in `D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-pc` (NON usare l'albero attuale, ha 6.000 voci sporche e file con segreti). Creare una seconda copia "personalizzata" con i tuoi 5 plugin e il tuo `MainPreset.ts` per le prove di non invasivita'.
-- [ ] 0.3 `uv venv --python 3.11`, installazione dipendenze di test, `pytest` di baseline su `tests/unit_tests/common/test_time_shifts.py` e `test_query_context_processor.py`.
-- [ ] 0.4 `npm ci --legacy-peer-deps`, heap 8192 o piu', baseline Jest su `plugin-chart-table`, `plugin-chart-echarts`, `superset-ui-core`, `nativeFilters/utils.test.ts`.
-- [ ] 0.5 Superset su SQLite con `superset_config` di prova (porta locale, nessuna credenziale reale), utente di prova generato localmente.
-- [ ] 0.6 Dataset sintetico (220.000 righe, 24 mesi) e vista di esempio con colonna timestamp unica.
+- [x] 0.1 Controllare risorse: RAM, spazio, Python 3.11 con `uv`, Node 20 (versione del tuo `Dockerfile`).
+- [x] 0.2 Creare un checkout pulito con `git worktree add` dal tag `6.1.0` del tuo clone in `D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-pc` (NON usare l'albero attuale, ha 6.000 voci sporche e file con segreti). Creare una seconda copia "personalizzata" con i tuoi 5 plugin e il tuo `MainPreset.ts` per le prove di non invasivita'.
+- [x] 0.3 `uv venv --python 3.11`, installazione dipendenze di test, `pytest` di baseline su `tests/unit_tests/common/test_time_shifts.py` e `test_query_context_processor.py`.
+- [x] 0.4 `npm ci --legacy-peer-deps`, heap 8192 o piu', baseline Jest su `plugin-chart-table`, `plugin-chart-echarts`, `superset-ui-core`, `nativeFilters/utils.test.ts`.
+- [x] 0.5 Superset su SQLite con `superset_config` di prova (porta locale, nessuna credenziale reale), utente di prova generato localmente.
+- [x] 0.6 Dataset sintetico (220.000 righe, 24 mesi) e vista di esempio con colonna timestamp unica.
 - Gate G0: baseline verde, sai quanto tempo richiede la build del frontend. **Se la RAM non basta per il webpack** passa al piano B: Jest piu' `tsc` per il frontend e prova API per il backend, e la prova visiva resta all'utente (documentare).
 
 ### Fase 1: Contratto (Agente K)
-- [ ] 1.1 Scrivere `docs/CONTRATTO.md` con le chiavi della sezione 3.1, formato offset, nomi colonna, regola di allineamento, esempi JSON del payload `/api/v1/chart/data`.
-- [ ] 1.2 Scrivere la firma di `applyDashboardComparison` e `resolveTimeOffsets` con test d'interfaccia (Jest) ancora rossi.
+- [x] 1.1 Scrivere `docs/CONTRATTO.md` con le chiavi della sezione 3.1, formato offset, nomi colonna, regola di allineamento, esempi JSON del payload `/api/v1/chart/data`.
+- [x] 1.2 Scrivere la firma di `applyDashboardComparison` e `resolveTimeOffsets` con test d'interfaccia (Jest) ancora rossi.
 - Gate G1: revisione del contratto (R), poi congelato.
 
 ### Fase 2: Backend (Agente A)
-- [ ] 2.1 Test rossi: allineamento con asse temporale reale e grana mese/settimana/giorno (4.A).
-- [ ] 2.2 Traslazione in mesi interi o giorni in `processing_time_offsets` e `_process_date_range_offset`.
-- [ ] 2.3 `_determine_join_keys` per grana con offset a intervallo.
-- [ ] 2.4 Estremi con orario.
-- [ ] 2.5 `superset/constants.py`: `time_compare`, `comparison_type`.
-- [ ] 2.6 Test di integrazione: `POST /api/v1/chart/data` con `time_offsets: ["2026-08-01 : 2026-09-01"]` e flag acceso, su SQLite sintetico.
-- [ ] 2.7 Regressione: tutta la suite `test_time_shifts.py`, `test_query_context_processor.py`, `tests/unit_tests/pandas_postprocessing/test_compare.py` verde.
+- [x] 2.1 Test rossi: allineamento con asse temporale reale e grana mese/settimana/giorno (4.A).
+- [x] 2.2 Traslazione in mesi interi o giorni in `processing_time_offsets` e `_process_date_range_offset`.
+- [x] 2.3 `_determine_join_keys` per grana con offset a intervallo.
+- [x] 2.4 Estremi con orario.
+- [x] 2.5 `superset/constants.py`: `time_compare`, `comparison_type`.
+- [x] 2.6 Test di integrazione: `POST /api/v1/chart/data` con `time_offsets: ["2026-08-01 : 2026-09-01"]` e flag acceso, su SQLite sintetico.
+- [x] 2.7 Regressione: tutta la suite `test_time_shifts.py`, `test_query_context_processor.py`, `tests/unit_tests/pandas_postprocessing/test_compare.py` verde.
 - Gate G2a.
 
 ### Fase 3: Frontend core (Agente B)
-- [ ] 3.1 `comparison_type` nei mapping override e nei tipi.
-- [ ] 3.2 Implementare `applyDashboardComparison`, `resolveTimeOffsets`; rendere verdi i test della Fase 1.
-- [ ] 3.3 `isTimeComparison` e controllo `follow_dashboard_comparison`.
-- [ ] 3.4 Test merge in `nativeFilters/utils.test.ts`.
-- [ ] 3.5 `tsc` sul pacchetto, Jest dei due pacchetti.
+- [x] 3.1 `comparison_type` nei mapping override e nei tipi.
+- [x] 3.2 Implementare `applyDashboardComparison`, `resolveTimeOffsets`; rendere verdi i test della Fase 1.
+- [x] 3.3 `isTimeComparison` e controllo `follow_dashboard_comparison`.
+- [x] 3.4 Test merge in `nativeFilters/utils.test.ts`.
+- [x] 3.5 `tsc` sul pacchetto, Jest dei due pacchetti.
 - Gate G2b.
 
 ### Fase 4: Filtro nativo (Agente C)
-- [ ] 4.1 `resolveComparison.ts` con 25 o piu' test (TDD).
-- [ ] 4.2 Componente, plugin, controlPanel, transformProps, miniatura.
-- [ ] 4.3 Registrazioni (`constants.ts`, `index.ts`, ancora in `MainPreset.ts`, `FILTER_SUPPORTED_TYPES`) e punti `filter_time` della finestra dei filtri.
-- [ ] 4.4 Test RTL: il filtro compare nell'elenco tipi, si configura, emette il payload corretto, ripristina il valore.
+- [x] 4.1 `resolveComparison.ts` con 25 o piu' test (TDD).
+- [x] 4.2 Componente, plugin, controlPanel, transformProps, miniatura.
+- [x] 4.3 Registrazioni (`constants.ts`, `index.ts`, ancora in `MainPreset.ts`, `FILTER_SUPPORTED_TYPES`) e punti `filter_time` della finestra dei filtri.
+- [x] 4.4 Test RTL: il filtro compare nell'elenco tipi, si configura, emette il payload corretto, ripristina il valore.
 - Gate G3a.
 
 ### Fase 5: Grafici (Agente D, in sequenza)
-- [ ] 5.1 Table e Big Number (4.D, D1) con test.
-- [ ] 5.2 Barre e linee ECharts (D2) con test.
-- [ ] 5.3 Pivot Table (D3) con test.
-- [ ] 5.4 Per ognuno: i test gia' presenti del grafico passano senza modifiche.
+- [x] 5.1 Table e Big Number (4.D, D1) con test.
+- [x] 5.2 Barre e linee ECharts (D2) con test.
+- [x] 5.3 Pivot Table (D3) con test.
+- [x] 5.4 Per ognuno: i test gia' presenti del grafico passano senza modifiche.
 - Gate G3b.
 
 ### Fase 6: Installer e documenti (Agente I, in parallelo)
-- [ ] 6.1 Scheletro repository, `.gitignore`, CHANGELOG, AGENTS, codemap, LICENSE e NOTICE (Apache 2.0, i file contengono codice derivato da Superset).
-- [ ] 6.2 `tools/make-payload.ps1`: dal checkout di lavoro (branch `period-compare`) genera `payload/6.1.0` (file nuovi + patch + ancore).
-- [ ] 6.3 `PeriodCompare.ps1` e librerie; lanciatori `.bat` (ricordare: UTF-8 senza BOM, `;` non `&&`).
-- [ ] 6.4 Test Pester (vedi sezione 8).
-- [ ] 6.5 `README.md` e `docs/*`: spiegazione completa, ogni file modificato con il motivo, schema del flusso dati, risoluzione problemi.
+- [x] 6.1 Scheletro repository, `.gitignore`, CHANGELOG, AGENTS, codemap, LICENSE e NOTICE (Apache 2.0, i file contengono codice derivato da Superset).
+- [x] 6.2 `tools/make-payload.ps1`: dal checkout di lavoro (branch `period-compare`) genera `payload/6.1.0` (file nuovi + patch + ancore).
+- [x] 6.3 `PeriodCompare.ps1` e librerie; lanciatori `.bat` (ricordare: UTF-8 senza BOM, `;` non `&&`).
+- [x] 6.4 Test Pester (vedi sezione 8).
+- [x] 6.5 `README.md` e `docs/*`: spiegazione completa, ogni file modificato con il motivo, schema del flusso dati, risoluzione problemi.
 - Gate G2c.
 
 ### Fase 7: Integrazione e prova end to end
-- [ ] 7.1 Applicare il payload generato a una copia pulita 6.1.0 con `install.bat` e rilanciare tutti i test (Python e Jest) su quella copia.
-- [ ] 7.2 Avviare backend e frontend, importare la dashboard dimostrativa, scegliere due periodi e verificare i quattro grafici (screenshot e controllo dei valori contro una query SQL di riferimento scritta a mano).
-- [ ] 7.3 Prove ai bordi: periodo di 1 giorno, mese con 28/29/30/31 giorni, confronto anno bisestile, riferimento senza dati, confronto senza dati, filtro cancellato, cambio filtri con dipendenze, due filtri nativi di tipo PeriodCompare.
-- [ ] 7.4 Prova con la copia "personalizzata": plugin e `MainPreset.ts` intatti, plugin tuoi ancora funzionanti.
+- [x] 7.1 Applicare il payload generato a una copia pulita 6.1.0 con `install.bat` e rilanciare tutti i test (Python e Jest) su quella copia.
+- [x] 7.2 Avviare backend e frontend, importare la dashboard dimostrativa, scegliere due periodi e verificare i quattro grafici (screenshot e controllo dei valori contro una query SQL di riferimento scritta a mano).
+- [x] 7.3 Prove ai bordi: periodo di 1 giorno, mese con 28/29/30/31 giorni, confronto anno bisestile, riferimento senza dati, confronto senza dati, filtro cancellato, cambio filtri con dipendenze, due filtri nativi di tipo PeriodCompare.
+- [x] 7.4 Prova con la copia "personalizzata": plugin e `MainPreset.ts` intatti, plugin tuoi ancora funzionanti.
 - Gate G4.
 
 ### Fase 8: Migrazione, dati di prova e benchmark
-- [ ] 8.1 Documento `docs/MIGRARE_DA_VISTE_CARTESIANE.md` con la ricetta generica della sezione 4.E.
-- [ ] 8.2 Generatore di fixture sintetiche multi-dominio (vendite, ticket, prestazioni) con le varianti di colonna data (sezione 8) e dashboard dimostrativa importabile.
-- [ ] 8.3 `tools/benchmark_chart_data.py`: latenza e numero di righe con vista cartesiana sintetica contro vista base + confronto, su SQLite (e PostgreSQL se disponibile).
-- [ ] 8.4 Checklist per la verifica su un server reale (a cura dell'utente, qualunque motore): query di riferimento, casi limite, numeri attesi.
+- [x] 8.1 Documento `docs/MIGRARE_DA_VISTE_CARTESIANE.md` con la ricetta generica della sezione 4.E.
+- [x] 8.2 Generatore di fixture sintetiche multi-dominio (vendite, ticket, prestazioni) con le varianti di colonna data (sezione 8) e dashboard dimostrativa importabile.
+- [x] 8.3 `tools/benchmark_chart_data.py`: latenza e numero di righe con vista cartesiana sintetica contro vista base + confronto, su SQLite (e PostgreSQL se disponibile).
+- [x] 8.4 Checklist per la verifica su un server reale (a cura dell'utente, qualunque motore): query di riferimento, casi limite, numeri attesi.
 - Gate G5.
 
 ### Fase 9: Plugin dell'utente (opzionale)
-- [ ] 9.1 Branch in `superset-extensions` (e `superset-plugins`) per `kpi_comparison` con modo `dashboard_comparison`, test Jest del plugin.
-- [ ] 9.2 Nota nel README: requisito della patch installata.
+- [x] 9.1 Branch in `superset-extensions` (e `superset-plugins`) per `kpi_comparison` con modo `dashboard_comparison`, test Jest del plugin.
+- [x] 9.2 Nota nel README: requisito della patch installata.
 
 ### Fase 10: Documentazione e revisione globale (Agenti I e R)
-- [ ] 10.1 Revisione codice di tutte le patch, `/simplify`, controllo che nessun file extra sia finito nel payload.
-- [ ] 10.2 Scansione segreti e dati personali nel repository (nessun CSV paziente, nessun `.env`, nessuna stringa di connessione, nessun cookie).
-- [ ] 10.3 Release `0.1.0` nel CHANGELOG (taglio di versione, link di confronto).
+- [x] 10.1 Revisione codice di tutte le patch, `/simplify`, controllo che nessun file extra sia finito nel payload.
+- [x] 10.2 Scansione segreti e dati personali nel repository (nessun CSV paziente, nessun `.env`, nessuna stringa di connessione, nessun cookie).
+- [x] 10.3 Release `0.1.0` nel CHANGELOG (taglio di versione, link di confronto).
 
 ### Fase 11: Repository privata e push
-- [ ] 11.1 `git init -b main` nella cartella `superset-period-compare`, commit finale.
-- [ ] 11.2 `gh repo create FrancescoCastaldi/superset-period-compare --private --source . --remote origin --push` (solo GitHub, come richiesto; nessun remote Bitbucket).
-- [ ] 11.3 Verificare con `gh repo view` che sia privata e che il branch `main` sia allineato.
+- [x] 11.1 `git init -b main` nella cartella `superset-period-compare`, commit finale.
+- [x] 11.2 `gh repo create FrancescoCastaldi/superset-period-compare --private --source . --remote origin --push` (solo GitHub, come richiesto; nessun remote Bitbucket).
+- [x] 11.3 Verificare con `gh repo view` che sia privata e che il branch `main` sia allineato.
 - Il push avviene solo dopo la conferma finale dell'utente sul riepilogo di G6.
 
 ---
