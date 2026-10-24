@@ -1,0 +1,9 @@
+# Every change needs a review from the owner.
+*                  @FrancescoCastaldi
+
+# Generated files: review the source in the Superset worktree, not the copy here.
+/payload/          @FrancescoCastaldi
+/compat/           @FrancescoCastaldi
+
+/installer/        @FrancescoCastaldi
+/.github/          @FrancescoCastaldi

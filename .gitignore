@@ -29,3 +29,9 @@ yarn-error.log*
 *.log
 *.tmp
 temp/
+
+# Local git worktrees and editor files
+.worktrees/
+.vscode/
+.idea/
+*.bak

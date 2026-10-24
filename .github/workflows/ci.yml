@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installer:
+    name: Installer (Pester)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          Import-Module Pester -RequiredVersion 3.4.0
+          Invoke-Pester -Path tests/installer -EnableExit
+
+  powershell-syntax:
+    name: PowerShell syntax
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse every script
+        shell: pwsh
+        run: |
+          $failed = 0
+          Get-ChildItem -Recurse -Include *.ps1 -File | ForEach-Object {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $failed++
+              $errors | ForEach-Object { Write-Error "$($_.Extent.File):$($_.Extent.StartLineNumber) $($_.Message)" }
+            }
+          }
+          if ($failed -gt 0) { exit 1 }
+
+  frontend-logic:
+    name: Frontend logic (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tests/frontend/verify-resolveComparison.mjs
+      - run: node tests/frontend/verify-applyDashboardComparison.mjs
+
+  python-syntax:
+    name: Python syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m py_compile scripts/e2e/*.py tests/backend/*.py
+
+  manifest:
+    name: Manifest and payload consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every payload file is listed in compat.json and the other way round
+        shell: pwsh
+        run: |
+          $compat = Get-Content compat/compat.json -Raw | ConvertFrom-Json
+          $listed = $compat.files.PSObject.Properties.Name | Sort-Object
+          $present = Get-ChildItem payload -Recurse -File | ForEach-Object {
+            $_.FullName.Substring((Resolve-Path payload).Path.Length + 1).Replace('\', '/')
+          } | Sort-Object
+          $diff = Compare-Object $listed $present
+          if ($diff) { $diff | Format-Table | Out-String | Write-Error; exit 1 }
+          "$($listed.Count) files, manifest and payload agree"
