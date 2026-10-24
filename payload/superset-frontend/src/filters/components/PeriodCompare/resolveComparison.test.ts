@@ -17,10 +17,7 @@
  * under the License.
  */
 
-import {
-  resolveComparison,
-  parseRange,
-} from './resolveComparison';
+import { resolveComparison } from './resolveComparison';
 
 describe('resolveComparison pure date arithmetic suite (28 cases)', () => {
   // 1. previous_month standard

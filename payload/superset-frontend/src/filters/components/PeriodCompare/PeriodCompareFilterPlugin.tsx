@@ -20,7 +20,7 @@ import { NO_TIME_RANGE, getExtensionsRegistry } from '@superset-ui/core';
 import { styled } from '@apache-superset/core/theme';
 import { useCallback, useEffect, useState } from 'react';
 import DateFilterControl from 'src/explore/components/controls/DateFilterControl';
-import { Select } from 'src/components';
+import { Select } from '@superset-ui/core/components';
 import { t } from '@apache-superset/core/translation';
 import { PluginFilterPeriodCompareProps } from './types';
 import { FilterPluginStyle } from '../common';
