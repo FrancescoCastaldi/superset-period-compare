@@ -1,94 +1,26 @@
 {
   "files": {
-    "superset/config.py": {
-      "upstream_sha256": "F1136E07EB3F19B3EA69218E4ECF7E96D5EEA66B83C5FAC588119C1B1B6EFE2E",
-      "status": "modified"
-    },
-    "superset-frontend/plugins/plugin-chart-echarts/src/Timeseries/transformProps.ts": {
-      "upstream_sha256": "FDD06E9DF7E77051565D1C75BD76613500D21F6EAF6738FC4558BD6E6F738523",
-      "status": "modified"
-    },
-    "superset-frontend/plugins/plugin-chart-echarts/src/BigNumber/BigNumberPeriodOverPeriod/transformProps.ts": {
-      "upstream_sha256": "C2A4379B9B7FB5A6152D123F58D1AF351C576FD678722736EE87BF47EE4A9279",
-      "status": "modified"
-    },
-    "superset/translations/it/LC_MESSAGES/messages.po": {
-      "upstream_sha256": "9D0B0CBCF46C98ACA92D31D1AE6DAF8A6E9CC8F22CD517128AABDF4A4B807787",
-      "status": "modified"
-    },
-    "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/DefaultValue.tsx": {
-      "upstream_sha256": "F29503ECFA3A55121B87BFE24F9F16314306E364E9966D91B6C073B635636684",
-      "status": "modified"
-    },
-    "superset-frontend/packages/superset-ui-chart-controls/src/utils/index.ts": {
-      "upstream_sha256": "F5A1ADD07ABC39548BD21B1AA34B302A24F2302B6A224D26225511523686EAA7",
-      "status": "modified"
-    },
-    "superset-frontend/src/filters/components/PeriodCompare/index.ts": {
-      "upstream_sha256": null,
-      "status": "added"
-    },
-    "superset-frontend/src/filters/components/PeriodCompare/PeriodCompareFilterPlugin.tsx": {
-      "upstream_sha256": null,
-      "status": "added"
-    },
-    "superset-frontend/packages/superset-ui-chart-controls/test/utils/applyDashboardComparison.test.ts": {
-      "upstream_sha256": null,
-      "status": "added"
-    },
-    "superset-frontend/plugins/plugin-chart-pivot-table/src/plugin/transformProps.ts": {
-      "upstream_sha256": "D366E6B0C9BCE68275C53465B9DBB7387B8CEE690D2519B3741687D5BBA23FF0",
-      "status": "modified"
-    },
-    "superset-frontend/src/filters/components/PeriodCompare/controlPanel.ts": {
-      "upstream_sha256": null,
-      "status": "added"
-    },
-    "superset-frontend/src/filters/components/PeriodCompare/transformProps.ts": {
-      "upstream_sha256": null,
-      "status": "added"
-    },
-    "superset-frontend/packages/superset-ui-core/src/query/types/QueryFormData.ts": {
-      "upstream_sha256": "BEF3ECE31B28DEC9ACBA9CA4A404C00FF89137E8FFFE4A436968206AC55C8549",
-      "status": "modified"
-    },
-    "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/constants.ts": {
-      "upstream_sha256": "E5EAC418C3550C41B9844B3144E45A7CE529E8155A32A8E3BCC54BA69AC524AF",
-      "status": "modified"
-    },
     "superset-frontend/plugins/plugin-chart-table/src/transformProps.ts": {
       "upstream_sha256": "99A84F43BF1E267E24CC80A33C98B06EBC5FE79EE876D355DE511BF7665AA32C",
-      "status": "modified"
-    },
-    "superset-frontend/src/constants.ts": {
-      "upstream_sha256": "9D04E0B8025E3157724F005E8D69B9BA41BEAB503EC078FD522BE879E131D57B",
-      "status": "modified"
-    },
-    "superset-frontend/packages/superset-ui-chart-controls/src/sections/timeComparison.tsx": {
-      "upstream_sha256": "70F3131AB2895B2AC9D89C17E0137260A46A6F86412783FD9512CE902D0A1CBD",
       "status": "modified"
     },
     "superset-frontend/packages/superset-ui-chart-controls/src/operators/utils/isTimeComparison.ts": {
       "upstream_sha256": "7A47DE8DCE6D93DD55006EDD4A4ABB90FD70355DF55CB272991B893BE4020D2C",
       "status": "modified"
     },
-    "superset-frontend/packages/superset-ui-chart-controls/src/utils/applyDashboardComparison.ts": {
+    "superset-frontend/packages/superset-ui-chart-controls/test/utils/applyDashboardComparison.test.ts": {
       "upstream_sha256": null,
       "status": "added"
     },
-    "superset-frontend/plugins/plugin-chart-echarts/src/BigNumber/BigNumberPeriodOverPeriod/buildQuery.ts": {
-      "upstream_sha256": "6D2E955BFA9813D8D05CB2E26223EF8C03FCA452A9AEFDE1857C9D175BD6DBCE",
+    "superset-frontend/src/constants.ts": {
+      "upstream_sha256": "9D04E0B8025E3157724F005E8D69B9BA41BEAB503EC078FD522BE879E131D57B",
       "status": "modified"
     },
-    "superset-frontend/src/visualizations/presets/MainPreset.ts": {
-      "upstream_sha256": "FD31583D5C2D6519D01A5B64B37FE3CC14F13EDE3298102B831B05089A29800D",
-      "status": "modified"
+    "superset-frontend/src/filters/components/PeriodCompare/index.ts": {
+      "upstream_sha256": null,
+      "status": "added"
     },
-    "superset-frontend/packages/superset-ui-core/src/query/constants.ts": {
-      "upstream_sha256": "C111C62E9FE5609AF2C6882F6FDCFB3EDDB5BBDAAC39C56B02A7EEC47031EA04",
-      "status": "modified"
-    },
-    "superset-frontend/src/filters/components/PeriodCompare/types.ts": {
+    "superset-frontend/src/filters/components/PeriodCompare/resolveComparison.ts": {
       "upstream_sha256": null,
       "status": "added"
     },
@@ -96,47 +28,115 @@
       "upstream_sha256": "F82A24F5305DA596CADA0A984B66E4218A297C6E901FCA075029C45792E1EE87",
       "status": "modified"
     },
-    "superset-frontend/src/filters/components/PeriodCompare/resolveComparison.test.ts": {
-      "upstream_sha256": null,
-      "status": "added"
-    },
     "superset-frontend/plugins/plugin-chart-echarts/src/Timeseries/buildQuery.ts": {
       "upstream_sha256": "CD86C8CECD736642D7F12E684BEA21FEFAACF7ED75CD894F69DF02063D2D68A4",
       "status": "modified"
     },
-    "superset-frontend/src/filters/components/index.ts": {
-      "upstream_sha256": "012C0DD7057944A9750FD2E7C36DD701B96B1DA805578FD734D4C7AB3DE832A0",
+    "superset-frontend/packages/superset-ui-chart-controls/src/utils/applyDashboardComparison.ts": {
+      "upstream_sha256": null,
+      "status": "added"
+    },
+    "superset-frontend/packages/superset-ui-core/src/query/types/QueryFormData.ts": {
+      "upstream_sha256": "BEF3ECE31B28DEC9ACBA9CA4A404C00FF89137E8FFFE4A436968206AC55C8549",
       "status": "modified"
     },
-    "superset/constants.py": {
-      "upstream_sha256": "7FF19FE4880E7EDCE1BA48FF1250690341F53C0F47DC9AE3827EEDF1F005B087",
+    "superset/translations/it/LC_MESSAGES/messages.po": {
+      "upstream_sha256": "9D0B0CBCF46C98ACA92D31D1AE6DAF8A6E9CC8F22CD517128AABDF4A4B807787",
       "status": "modified"
     },
-    "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/FiltersConfigForm.tsx": {
-      "upstream_sha256": "CB6A32E8688D156234884AA2216882E9AC60D38572887628BC0879AAC85014AF",
-      "status": "modified"
-    },
-    "superset/models/helpers.py": {
-      "upstream_sha256": "ED4B39907289A70B5E54E4AFC9F4721006BE396A07A8C6BB5BD8A16AFDCEC1D7",
+    "superset-frontend/plugins/plugin-chart-pivot-table/src/plugin/transformProps.ts": {
+      "upstream_sha256": "D366E6B0C9BCE68275C53465B9DBB7387B8CEE690D2519B3741687D5BBA23FF0",
       "status": "modified"
     },
     "superset-frontend/plugins/plugin-chart-table/src/buildQuery.ts": {
       "upstream_sha256": "4FEFA5C2D113ED967C27B89825963A96B6C6FEDB9A73268CAD03A3C3BFA09218",
       "status": "modified"
     },
-    "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/hooks/useFilterOperations.ts": {
-      "upstream_sha256": "D82A4F5EFBE18F3B8275A01E975394F40D662318814B682725595D637776EAB9",
+    "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/DefaultValue.tsx": {
+      "upstream_sha256": "F29503ECFA3A55121B87BFE24F9F16314306E364E9966D91B6C073B635636684",
       "status": "modified"
+    },
+    "superset-frontend/src/filters/components/PeriodCompare/resolveComparison.test.ts": {
+      "upstream_sha256": null,
+      "status": "added"
+    },
+    "superset/models/helpers.py": {
+      "upstream_sha256": "ED4B39907289A70B5E54E4AFC9F4721006BE396A07A8C6BB5BD8A16AFDCEC1D7",
+      "status": "modified"
+    },
+    "superset-frontend/src/filters/components/PeriodCompare/transformProps.ts": {
+      "upstream_sha256": null,
+      "status": "added"
+    },
+    "superset-frontend/packages/superset-ui-core/src/query/constants.ts": {
+      "upstream_sha256": "C111C62E9FE5609AF2C6882F6FDCFB3EDDB5BBDAAC39C56B02A7EEC47031EA04",
+      "status": "modified"
+    },
+    "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/FiltersConfigForm.tsx": {
+      "upstream_sha256": "CB6A32E8688D156234884AA2216882E9AC60D38572887628BC0879AAC85014AF",
+      "status": "modified"
+    },
+    "superset-frontend/plugins/plugin-chart-echarts/src/BigNumber/BigNumberPeriodOverPeriod/buildQuery.ts": {
+      "upstream_sha256": "6D2E955BFA9813D8D05CB2E26223EF8C03FCA452A9AEFDE1857C9D175BD6DBCE",
+      "status": "modified"
+    },
+    "superset-frontend/src/filters/components/PeriodCompare/controlPanel.ts": {
+      "upstream_sha256": null,
+      "status": "added"
+    },
+    "superset-frontend/src/visualizations/presets/MainPreset.ts": {
+      "upstream_sha256": "FD31583D5C2D6519D01A5B64B37FE3CC14F13EDE3298102B831B05089A29800D",
+      "status": "modified"
+    },
+    "superset-frontend/packages/superset-ui-chart-controls/src/sections/timeComparison.tsx": {
+      "upstream_sha256": "70F3131AB2895B2AC9D89C17E0137260A46A6F86412783FD9512CE902D0A1CBD",
+      "status": "modified"
+    },
+    "superset/constants.py": {
+      "upstream_sha256": "7FF19FE4880E7EDCE1BA48FF1250690341F53C0F47DC9AE3827EEDF1F005B087",
+      "status": "modified"
+    },
+    "superset-frontend/plugins/plugin-chart-echarts/src/Timeseries/transformProps.ts": {
+      "upstream_sha256": "FDD06E9DF7E77051565D1C75BD76613500D21F6EAF6738FC4558BD6E6F738523",
+      "status": "modified"
+    },
+    "superset-frontend/src/filters/components/PeriodCompare/PeriodCompareFilterPlugin.tsx": {
+      "upstream_sha256": null,
+      "status": "added"
     },
     "superset/common/query_object.py": {
       "upstream_sha256": "8CDDD94631E9E8BA60D6BDECA8520DDFDE1AE4482863560553FFE9842FCB0217",
       "status": "modified"
     },
-    "superset-frontend/src/filters/components/PeriodCompare/resolveComparison.ts": {
+    "superset/config.py": {
+      "upstream_sha256": "F1136E07EB3F19B3EA69218E4ECF7E96D5EEA66B83C5FAC588119C1B1B6EFE2E",
+      "status": "modified"
+    },
+    "superset-frontend/plugins/plugin-chart-echarts/src/BigNumber/BigNumberPeriodOverPeriod/transformProps.ts": {
+      "upstream_sha256": "C2A4379B9B7FB5A6152D123F58D1AF351C576FD678722736EE87BF47EE4A9279",
+      "status": "modified"
+    },
+    "superset-frontend/src/filters/components/PeriodCompare/types.ts": {
       "upstream_sha256": null,
       "status": "added"
+    },
+    "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/FiltersConfigForm/constants.ts": {
+      "upstream_sha256": "E5EAC418C3550C41B9844B3144E45A7CE529E8155A32A8E3BCC54BA69AC524AF",
+      "status": "modified"
+    },
+    "superset-frontend/src/filters/components/index.ts": {
+      "upstream_sha256": "012C0DD7057944A9750FD2E7C36DD701B96B1DA805578FD734D4C7AB3DE832A0",
+      "status": "modified"
+    },
+    "superset-frontend/src/dashboard/components/nativeFilters/FiltersConfigModal/hooks/useFilterOperations.ts": {
+      "upstream_sha256": "D82A4F5EFBE18F3B8275A01E975394F40D662318814B682725595D637776EAB9",
+      "status": "modified"
+    },
+    "superset-frontend/packages/superset-ui-chart-controls/src/utils/index.ts": {
+      "upstream_sha256": "F5A1ADD07ABC39548BD21B1AA34B302A24F2302B6A224D26225511523686EAA7",
+      "status": "modified"
     }
   },
-  "generated_at": "2026-10-24T21:09:25Z",
+  "generated_at": "2026-10-24T21:53:54Z",
   "version": "6.1.0"
 }

@@ -22,7 +22,7 @@ import {
   getExtensionsRegistry,
 } from '@superset-ui/core';
 import { styled } from '@apache-superset/core/theme';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import DateFilterControl from 'src/explore/components/controls/DateFilterControl';
 import { Select } from '@superset-ui/core/components';
 import { t } from '@apache-superset/core/translation';
@@ -98,6 +98,13 @@ export default function PeriodCompareFilterPlugin(
     'values' | 'difference' | 'percentage' | 'ratio'
   >(initialVal.comparisonType || 'values');
 
+  const referenceColumn =
+    formData?.reference_column || formData?.groupby?.[0];
+  // granularity_sqla accetta solo il nome della colonna, non una colonna ad hoc.
+  // Una stringa ha identita stabile: formData.groupby e un array nuovo a ogni render.
+  const referenceCol =
+    typeof referenceColumn === 'string' ? referenceColumn : undefined;
+
   const updateMask = useCallback(
     (
       refRange: string,
@@ -114,10 +121,6 @@ export default function PeriodCompareFilterPlugin(
       const isSet =
         resolved.referenceRange && resolved.referenceRange !== NO_TIME_RANGE;
       const isComparing = resolved.isActive && !!resolved.comparisonRange;
-      const referenceColumn = formData?.reference_column || formData?.groupby?.[0];
-      // granularity_sqla accetta solo il nome della colonna, non una colonna ad hoc
-      const referenceCol =
-        typeof referenceColumn === 'string' ? referenceColumn : undefined;
 
       // In ExtraFormData time_compare e dichiarato string (ExtraFormDataOverrideExtras)
       // e string[] (ExtraFormDataOverrideRegular): nessun valore soddisfa entrambi.
@@ -151,12 +154,33 @@ export default function PeriodCompareFilterPlugin(
         },
       });
     },
-    [setDataMask, formData?.reference_column, formData?.groupby],
+    [setDataMask, referenceCol],
   );
 
+  // setDataMask aggiorna lo stato della dashboard, che fa rifare il render del filtro:
+  // senza questa guardia ogni render rilancerebbe l'effetto in un ciclo infinito.
+  const lastApplied = useRef<string>();
   useEffect(() => {
+    const key = JSON.stringify([
+      referenceRange,
+      comparisonMode,
+      customRange,
+      comparisonType,
+      referenceCol,
+    ]);
+    if (lastApplied.current === key) {
+      return;
+    }
+    lastApplied.current = key;
     updateMask(referenceRange, comparisonMode, customRange, comparisonType);
-  }, [referenceRange, comparisonMode, customRange, comparisonType, updateMask]);
+  }, [
+    referenceRange,
+    comparisonMode,
+    customRange,
+    comparisonType,
+    referenceCol,
+    updateMask,
+  ]);
 
   return props.formData?.inView ? (
     <PeriodCompareStyles width={width} height={height}>
