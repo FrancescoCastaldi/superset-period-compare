@@ -57,6 +57,8 @@ function Restore-PeriodCompareBackup {
                     New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
                 }
                 Copy-Item -Path $backupFile -Destination $targetFile -Force
+                # Data aggiornata, come in Patch.ps1: i build incrementali devono vedere il cambio.
+                (Get-Item -LiteralPath $targetFile).LastWriteTime = Get-Date
                 Write-Host "Restored: $relPath" -ForegroundColor Green
             }
             $restoredCount++

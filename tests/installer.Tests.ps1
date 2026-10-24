@@ -224,3 +224,51 @@ Describe "Verify: riconoscimento upstream indipendente dalle fine riga" {
         Remove-Item $fx.Root -Recurse -Force
     }
 }
+
+Describe "Installer: data di modifica dei file" {
+
+    $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+    $InstallerScript = Join-Path $RepoRoot "installer\PeriodCompare.ps1"
+    $PayloadDir = Join-Path $RepoRoot "payload"
+
+    function New-MockSupersetTree {
+        $root = Join-Path $env:TEMP "pc_mtime_$([guid]::NewGuid().ToString('N'))"
+        $presetDir = Join-Path $root "superset-frontend\src\visualizations\presets"
+        New-Item -ItemType Directory -Path $presetDir -Force | Out-Null
+        $mock = "import {`n  TimeGrainFilterPlugin,`n} from 'src/filters/components';`nconst list = [`n  new TimeFilterPlugin().configure({ key: FilterPlugins.Time }),`n];"
+        [System.IO.File]::WriteAllText((Join-Path $presetDir "MainPreset.ts"), $mock, [System.Text.UTF8Encoding]::new($false))
+        return $root
+    }
+
+    # tsc -b e webpack decidono cosa ricompilare confrontando le date dei file: un file
+    # copiato con la data vecchia del payload viene considerato gia compilato.
+    It "dopo Install tutti i file del payload hanno la data dell'installazione" {
+        $root = New-MockSupersetTree
+        $before = (Get-Date).AddSeconds(-2)
+        & $InstallerScript -Action Install -TargetDir $root -SkipBuild | Out-Null
+        $stale = @()
+        $prefixLength = $PayloadDir.ToString().Length
+        foreach ($f in (Get-ChildItem $PayloadDir -Recurse -File)) {
+            $rel = $f.FullName.Substring($prefixLength).TrimStart([char]92, [char]47)
+            $t = Get-Item (Join-Path $root $rel)
+            if ($t.LastWriteTime -lt $before) { $stale += $rel }
+        }
+        $stale.Count | Should Be 0
+        & $InstallerScript -Action Uninstall -TargetDir $root | Out-Null
+        Remove-Item -LiteralPath $root -Recurse -Force
+    }
+
+    It "dopo Uninstall i file ripristinati hanno la data del ripristino" {
+        $root = New-MockSupersetTree
+        $existing = Join-Path $root "superset\config.py"
+        New-Item -ItemType Directory -Path (Split-Path $existing -Parent) -Force | Out-Null
+        [System.IO.File]::WriteAllText($existing, "ORIGINALE = 1`n", [System.Text.UTF8Encoding]::new($false))
+        (Get-Item $existing).LastWriteTime = (Get-Date).AddYears(-1)
+        & $InstallerScript -Action Install -TargetDir $root -SkipBuild | Out-Null
+        $before = (Get-Date).AddSeconds(-2)
+        & $InstallerScript -Action Uninstall -TargetDir $root | Out-Null
+        (Get-Content $existing -Raw).Trim() | Should Be "ORIGINALE = 1"
+        ((Get-Item $existing).LastWriteTime -ge $before) | Should Be $true
+        Remove-Item -LiteralPath $root -Recurse -Force
+    }
+}

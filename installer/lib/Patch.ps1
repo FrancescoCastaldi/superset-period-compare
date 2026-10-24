@@ -90,6 +90,10 @@ function Install-PeriodComparePatch {
                 New-Item -ItemType Directory -Path $targetDirForFile -Force | Out-Null
             }
             Copy-Item -Path $file.FullName -Destination $targetFile -Force
+            # Copy-Item conserva la data del payload. tsc -b e webpack confrontano le date
+            # con gli output gia generati (lib/*.d.ts): con una data piu vecchia il file
+            # verrebbe considerato gia compilato e la patch non avrebbe effetto.
+            (Get-Item -LiteralPath $targetFile).LastWriteTime = Get-Date
             Write-Host "Applied: $relPath" -ForegroundColor Green
         }
         $appliedCount++
