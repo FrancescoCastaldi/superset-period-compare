@@ -111,10 +111,10 @@ export default function transformProps(chartProps: ChartProps) {
   const metricName = metric ? getMetricLabel(metric) : '';
   const metrics = chartProps.datasource?.metrics || [];
   const originalLabel = getOriginalLabel(metric, metrics);
-  const showMetricName = chartProps.rawFormData?.show_metric_name ?? false;
-  const timeComparison = ensureIsArray(chartProps.rawFormData?.time_compare)[0];
-  const startDateOffset = chartProps.rawFormData?.start_date_offset;
-  const currentTimeRangeFilter = chartProps.rawFormData?.adhoc_filters?.filter(
+  const showMetricName = formData.show_metric_name ?? false;
+  const timeComparison = ensureIsArray(formData.time_compare)[0];
+  const startDateOffset = formData.start_date_offset;
+  const currentTimeRangeFilter = formData.adhoc_filters?.filter(
     (adhoc_filter: SimpleAdhocFilter) =>
       adhoc_filter.operator === 'TEMPORAL_RANGE',
   )?.[0];
