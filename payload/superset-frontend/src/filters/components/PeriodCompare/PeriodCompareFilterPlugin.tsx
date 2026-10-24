@@ -16,7 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { NO_TIME_RANGE, getExtensionsRegistry } from '@superset-ui/core';
+import {
+  ExtraFormData,
+  NO_TIME_RANGE,
+  getExtensionsRegistry,
+} from '@superset-ui/core';
 import { styled } from '@apache-superset/core/theme';
 import { useCallback, useEffect, useState } from 'react';
 import DateFilterControl from 'src/explore/components/controls/DateFilterControl';
@@ -115,8 +119,11 @@ export default function PeriodCompareFilterPlugin(
       const referenceCol =
         typeof referenceColumn === 'string' ? referenceColumn : undefined;
 
-      setDataMask({
-        extraFormData: isComparing
+      // In ExtraFormData time_compare e dichiarato string (ExtraFormDataOverrideExtras)
+      // e string[] (ExtraFormDataOverrideRegular): nessun valore soddisfa entrambi.
+      // Il valore reale e una lista di intervalli, come legge applyDashboardComparison.
+      const extraFormData = (
+        isComparing
           ? {
               time_range: resolved.referenceRange,
               time_compare: [resolved.comparisonRange!],
@@ -128,7 +135,11 @@ export default function PeriodCompareFilterPlugin(
                 time_range: resolved.referenceRange,
                 ...(referenceCol ? { granularity_sqla: referenceCol } : {}),
               }
-            : {},
+            : {}
+      ) as unknown as ExtraFormData;
+
+      setDataMask({
+        extraFormData,
         filterState: {
           value: {
             referenceRange: refRange,
