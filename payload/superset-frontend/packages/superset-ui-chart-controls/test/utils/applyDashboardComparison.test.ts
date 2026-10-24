@@ -21,6 +21,7 @@ import { ComparisonType } from '@superset-ui/core';
 import {
   applyDashboardComparison,
   resolveTimeOffsets,
+  isComparisonSupported,
 } from '../../src/utils/applyDashboardComparison';
 
 describe('applyDashboardComparison contract tests', () => {
@@ -72,6 +73,36 @@ describe('applyDashboardComparison contract tests', () => {
     expect(result.timeOffsets).toEqual(['1 year ago']);
     expect(result.comparisonType).toBe(ComparisonType.Ratio);
   });
+
+  test('gracefully degrades and ignores comparison for unsupported chart types', () => {
+    const formData = {
+      viz_type: 'sankey',
+      extra_form_data: {
+        time_compare: '2026-08-01 : 2026-09-01',
+        comparison_type: 'values',
+      },
+    };
+
+    const result = applyDashboardComparison(formData);
+    expect(result.isComparing).toBe(false);
+    expect(result.timeOffsets).toEqual([]);
+    expect(result.comparisonType).toBe(ComparisonType.Values);
+    expect(result.formData).toEqual(formData);
+    expect(result.formData.time_compare).toBeUndefined();
+  });
+
+  test('isComparisonSupported returns false for unsupported and true for supported viz types', () => {
+    expect(isComparisonSupported('sankey')).toBe(false);
+    expect(isComparisonSupported('treemap')).toBe(false);
+    expect(isComparisonSupported('pie')).toBe(false);
+
+    expect(isComparisonSupported('table')).toBe(true);
+    expect(isComparisonSupported('pivot_table_v2')).toBe(true);
+    expect(isComparisonSupported('pop_kpi')).toBe(true);
+    expect(isComparisonSupported('echarts_timeseries_line')).toBe(true);
+    expect(isComparisonSupported('echarts_timeseries_bar')).toBe(true);
+    expect(isComparisonSupported(undefined)).toBe(true);
+  });
 });
 
 describe('resolveTimeOffsets contract tests', () => {
@@ -88,6 +119,18 @@ describe('resolveTimeOffsets contract tests', () => {
 
   test('returns empty array when comparison is inactive', () => {
     const formData = {};
+    const offsets = resolveTimeOffsets(formData);
+    expect(offsets).toEqual([]);
+  });
+
+  test('returns empty array for unsupported chart types', () => {
+    const formData = {
+      viz_type: 'sankey',
+      extra_form_data: {
+        time_compare: '2026-08-01 : 2026-09-01',
+      },
+    };
+
     const offsets = resolveTimeOffsets(formData);
     expect(offsets).toEqual([]);
   });

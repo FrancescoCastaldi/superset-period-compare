@@ -29,11 +29,60 @@ export interface DashboardComparisonResult<
 }
 
 /**
+ * Chart visualization types that natively support time comparison.
+ */
+export const SUPPORTED_COMPARISON_VIZ_TYPES = new Set([
+  'table',
+  'pivot_table_v2',
+  'pop_kpi',
+  'big_number',
+  'big_number_total',
+  'echarts_area',
+  'mixed_timeseries',
+]);
+
+/**
+ * Checks whether a chart visualization type supports time comparison.
+ * If vizType is omitted or empty, returns true to preserve backward compatibility.
+ */
+export function isComparisonSupported(vizType?: string): boolean {
+  if (!vizType) {
+    return true;
+  }
+  return (
+    SUPPORTED_COMPARISON_VIZ_TYPES.has(vizType) ||
+    vizType.startsWith('echarts_timeseries')
+  );
+}
+
+/**
  * Applies dashboard comparison overrides to chart formData and resolves effective comparison properties.
+ * For chart visualization types that do not support time comparison, gracefully degrades by returning
+ * the raw formData untouched and inactive comparison state.
  */
 export function applyDashboardComparison<T extends Record<string, any>>(
   formData: T,
 ): DashboardComparisonResult<T> {
+  if (!formData) {
+    return {
+      formData: formData as T,
+      timeOffsets: [],
+      comparisonType: ComparisonType.Values,
+      isComparing: false,
+    };
+  }
+
+  // Graceful degradation for chart types that do not support time comparison
+  if (formData.viz_type && !isComparisonSupported(formData.viz_type)) {
+    return {
+      formData,
+      timeOffsets: [],
+      comparisonType:
+        (formData.comparison_type as ComparisonType) || ComparisonType.Values,
+      isComparing: false,
+    };
+  }
+
   const followDashboard = formData?.follow_dashboard_comparison !== false;
   const extraFormData = formData?.extra_form_data || {};
 

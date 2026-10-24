@@ -13,7 +13,47 @@ function ensureIsArray(val) {
   return Array.isArray(val) ? val : [val];
 }
 
+const SUPPORTED_COMPARISON_VIZ_TYPES = new Set([
+  'table',
+  'pivot_table_v2',
+  'pop_kpi',
+  'big_number',
+  'big_number_total',
+  'echarts_area',
+  'mixed_timeseries',
+]);
+
+function isComparisonSupported(vizType) {
+  if (!vizType) {
+    return true;
+  }
+  return (
+    SUPPORTED_COMPARISON_VIZ_TYPES.has(vizType) ||
+    vizType.startsWith('echarts_timeseries')
+  );
+}
+
 function applyDashboardComparison(formData) {
+  if (!formData) {
+    return {
+      formData,
+      timeOffsets: [],
+      comparisonType: ComparisonType.Values,
+      isComparing: false,
+    };
+  }
+
+  // Graceful degradation for chart types that do not support time comparison
+  if (formData.viz_type && !isComparisonSupported(formData.viz_type)) {
+    return {
+      formData,
+      timeOffsets: [],
+      comparisonType:
+        formData.comparison_type || ComparisonType.Values,
+      isComparing: false,
+    };
+  }
+
   const followDashboard = formData?.follow_dashboard_comparison !== false;
   const extraFormData = formData?.extra_form_data || {};
 
@@ -142,4 +182,49 @@ function resolveTimeOffsets(formData) {
   console.log('Test 5 passed: resolveTimeOffsets inactive');
 }
 
-console.log('ALL CONTRACT TESTS PASSED (5/5)');
+// 6. Graceful degradation for unsupported chart types (e.g. sankey, treemap)
+{
+  const formData = {
+    viz_type: 'sankey',
+    extra_form_data: {
+      time_compare: '2026-08-01 : 2026-09-01',
+      comparison_type: 'values',
+    },
+  };
+  const result = applyDashboardComparison(formData);
+  assert.equal(result.isComparing, false);
+  assert.deepEqual(result.timeOffsets, []);
+  assert.equal(result.comparisonType, ComparisonType.Values);
+  assert.deepEqual(result.formData, formData);
+  assert.equal(result.formData.time_compare, undefined);
+  console.log('Test 6 passed: graceful degradation for unsupported chart type (sankey)');
+}
+
+// 7. resolveTimeOffsets on unsupported chart returns empty array
+{
+  const formData = {
+    viz_type: 'treemap',
+    extra_form_data: {
+      time_compare: '2026-08-01 : 2026-09-01',
+    },
+  };
+  const offsets = resolveTimeOffsets(formData);
+  assert.deepEqual(offsets, []);
+  console.log('Test 7 passed: resolveTimeOffsets returns empty array for unsupported chart type (treemap)');
+}
+
+// 8. isComparisonSupported correctly classifies viz types
+{
+  assert.equal(isComparisonSupported('sankey'), false);
+  assert.equal(isComparisonSupported('treemap'), false);
+  assert.equal(isComparisonSupported('pie'), false);
+  assert.equal(isComparisonSupported('table'), true);
+  assert.equal(isComparisonSupported('pivot_table_v2'), true);
+  assert.equal(isComparisonSupported('pop_kpi'), true);
+  assert.equal(isComparisonSupported('echarts_timeseries_line'), true);
+  assert.equal(isComparisonSupported('echarts_timeseries_bar'), true);
+  assert.equal(isComparisonSupported(undefined), true);
+  console.log('Test 8 passed: isComparisonSupported classification');
+}
+
+console.log('ALL CONTRACT TESTS PASSED (8/8)');

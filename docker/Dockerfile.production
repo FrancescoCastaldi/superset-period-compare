@@ -1,0 +1,61 @@
+# Dockerfile.production
+# Multi-stage standalone production build for Apache Superset 6.1.0 with PeriodCompare.
+#
+# Produces an enterprise-ready, self-contained Docker image:
+# - Zero Node.js runtime footprint
+# - Pre-compiled static assets
+# - Atomic PeriodCompare backend and frontend integration
+#
+# Usage:
+#   docker build -f docker/Dockerfile.production -t superset:6.1.0-period-compare .
+
+# -----------------------------------------------------------------------------
+# Stage 1: Frontend compilation (skipped if precompiled assets are mounted)
+# -----------------------------------------------------------------------------
+FROM node:20-bullseye-slim AS frontend-builder
+
+WORKDIR /app/superset-frontend
+
+# Copy dependencies definitions
+COPY superset-frontend/package*.json ./
+COPY superset-frontend/packages/ ./packages/
+COPY superset-frontend/plugins/ ./plugins/
+
+RUN npm ci --legacy-peer-deps
+
+# Copy full frontend sources including PeriodCompare plugin
+COPY superset-frontend/ ./
+
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=8192" \
+    BUILD_CMD=build
+
+RUN npm run build
+
+# -----------------------------------------------------------------------------
+# Stage 2: Final lean production runtime
+# -----------------------------------------------------------------------------
+FROM apache/superset:6.1.0 AS final
+
+USER root
+
+# 1. Overlay patched backend files
+COPY payload/superset/ /app/superset/
+
+# 2. Overlay compiled production static assets from builder stage
+COPY --from=frontend-builder /app/superset/static/assets/ /app/superset/static/assets/
+
+# 3. Ensure permissions for the superset non-privileged user
+RUN chown -R superset:superset /app/superset
+
+USER superset
+
+ENV SUPERSET_ENV=production \
+    FLASK_ENV=production
+
+EXPOSE 8088
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f "http://localhost:8088/health" || exit 1
+
+CMD ["/usr/bin/run-server.sh"]
