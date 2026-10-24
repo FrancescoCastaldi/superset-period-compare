@@ -80,7 +80,8 @@ export default function transformProps(chartProps: ChartProps) {
   const {
     width,
     height,
-    formData: rawFormData,
+    formData,
+    rawFormData,
     queriesData,
     datasource: {
       currencyFormats = {},
@@ -88,7 +89,10 @@ export default function transformProps(chartProps: ChartProps) {
       currencyCodeColumn,
     },
   } = chartProps;
-  const { formData } = applyDashboardComparison(rawFormData);
+  // formData is camelCased by Superset (timeCompare, extraFormData): the comparison
+  // fields must be read from rawFormData, which keeps the snake_case keys that
+  // applyDashboardComparison and the backend use.
+  const { formData: comparisonFormData } = applyDashboardComparison(rawFormData);
   const {
     boldText,
     headerFontSize,
@@ -111,10 +115,10 @@ export default function transformProps(chartProps: ChartProps) {
   const metricName = metric ? getMetricLabel(metric) : '';
   const metrics = chartProps.datasource?.metrics || [];
   const originalLabel = getOriginalLabel(metric, metrics);
-  const showMetricName = formData.show_metric_name ?? false;
-  const timeComparison = ensureIsArray(formData.time_compare)[0];
-  const startDateOffset = formData.start_date_offset;
-  const currentTimeRangeFilter = formData.adhoc_filters?.filter(
+  const showMetricName = comparisonFormData.show_metric_name ?? false;
+  const timeComparison = ensureIsArray(comparisonFormData.time_compare)[0];
+  const startDateOffset = comparisonFormData.start_date_offset;
+  const currentTimeRangeFilter = comparisonFormData.adhoc_filters?.filter(
     (adhoc_filter: SimpleAdhocFilter) =>
       adhoc_filter.operator === 'TEMPORAL_RANGE',
   )?.[0];
