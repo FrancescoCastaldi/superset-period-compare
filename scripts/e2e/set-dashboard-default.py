@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Imposta il valore predefinito del filtro PeriodCompare della dashboard di prova, cosi'
-la dashboard si apre gia' con riferimento e confronto applicati (utile per i test
-automatici nel browser, senza cliccare sul filtro).
+Sets the default value of the PeriodCompare filter on the test dashboard, so the
+dashboard opens with the reference and comparison periods already applied (useful for
+automated browser tests, without clicking on the filter).
 
-Uso (dentro il container di Superset):
+Usage (inside the Superset container):
     python set-dashboard-default.py --reference "2026-09-01 : 2026-10-01" \
         --comparison "2026-08-01 : 2026-09-01" --type values
     python set-dashboard-default.py --clear

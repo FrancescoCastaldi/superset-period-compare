@@ -1,0 +1,13 @@
+# Normalize line endings. The installer hashes files with CRLF reduced to LF, so
+# a checkout on Windows works with either style.
+* text=auto eol=lf
+
+*.bat text eol=crlf
+
+# Generated: payload/ and the compatibility manifest are produced by scripts/make-payload.ps1
+payload/** linguist-generated=true
+compat/compat.json linguist-generated=true
+
+# Documentation and demo are not counted as project code
+docs/** linguist-documentation=true
+docs/demo/** linguist-detectable=false

@@ -1,9 +1,13 @@
-# tests/installer.Tests.ps1
-# Pester test suite covering the installer validation cases.
+# tests/installer/installer.Tests.ps1
+# Pester 3.4 test suite for the installer.
+#
+# Cases 3 to 5 run against a real Superset tree that contains user plugins. Point the
+# PERIOD_COMPARE_TEST_TREE environment variable to such a tree to enable them; they
+# are skipped when it is not set. The tree is restored byte for byte after each case.
 
-$RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+$RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $InstallerScript = Join-Path $RepoRoot "installer\PeriodCompare.ps1"
-$CompatFile = Join-Path $RepoRoot "compat.json"
+$CompatFile = Join-Path $RepoRoot "compat\compat.json"
 $PayloadDir = Join-Path $RepoRoot "payload"
 
 Describe "Superset Period Compare Installer Validation Suite" {
@@ -66,8 +70,8 @@ Describe "Superset Period Compare Installer Validation Suite" {
 
     Context "Case 3: Non-invasiveness and user custom plugin protection" {
         It "Preserves user custom plugins and identical hashes across verify" {
-            $customWorktree = "D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-custom"
-            if (Test-Path $customWorktree) {
+            $customWorktree = $env:PERIOD_COMPARE_TEST_TREE
+            if ($customWorktree -and (Test-Path $customWorktree)) {
                 $userPluginsDir = Join-Path $customWorktree "superset-frontend\plugins"
                 $userPlugins = Get-ChildItem -Path $userPluginsDir -Directory -Filter "superset-plugin-*"
                 ($userPlugins.Count -gt 0) | Should Be $true
@@ -99,8 +103,8 @@ Describe "Superset Period Compare Installer Validation Suite" {
 
     Context "Case 4: Automatic project directory recognition" {
         It "Automatically detects candidate project when TargetDir is omitted" {
-            $customWorktree = "D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-custom"
-            if (Test-Path $customWorktree) {
+            $customWorktree = $env:PERIOD_COMPARE_TEST_TREE
+            if ($customWorktree -and (Test-Path $customWorktree)) {
                 $env:CALLER_DIR = $customWorktree
                 try {
                     # Verify action runs with no TargetDir passed, relying on auto-detection
@@ -115,8 +119,8 @@ Describe "Superset Period Compare Installer Validation Suite" {
 
     Context "Case 5: Full End-to-End Install, Verify, and Rollback on existing project" {
         It "Applies patch to existing custom project, protects user plugins, and restores cleanly" {
-            $customWorktree = "D:\Actual\03_Sviluppo_Software\Repositories\_work\superset-6.1.0-custom"
-            if (Test-Path $customWorktree) {
+            $customWorktree = $env:PERIOD_COMPARE_TEST_TREE
+            if ($customWorktree -and (Test-Path $customWorktree)) {
                 $presetPath = Join-Path $customWorktree "superset-frontend\src\visualizations\presets\MainPreset.ts"
                 $origPresetHash = (Get-FileHash $presetPath).Hash
 
@@ -173,9 +177,9 @@ Describe "Superset Period Compare Installer Validation Suite" {
 }
 
 
-Describe "Verify: riconoscimento upstream indipendente dalle fine riga" {
+Describe "Verify: upstream detection independent of line endings" {
 
-    $VerifyScript = Join-Path (Resolve-Path (Join-Path $PSScriptRoot "..")) "installer\lib\Verify.ps1"
+    $VerifyScript = Join-Path (Resolve-Path (Join-Path $PSScriptRoot "..\..")) "installer\lib\Verify.ps1"
     . $VerifyScript
 
     function New-VerifyFixture {
@@ -194,7 +198,7 @@ Describe "Verify: riconoscimento upstream indipendente dalle fine riga" {
         return @{ Root = $root; Target = $target; Payload = $payload; Compat = $compatFile }
     }
 
-    It "riconosce come upstream un file con fine riga CRLF il cui hash LF e in compat.json" {
+    It "recognizes a CRLF file whose LF hash is in compat.json as upstream" {
         $fx = New-VerifyFixture -TargetContent "riga1`r`nriga2`r`n" -PayloadContent "patched`n" -UpstreamLfContent "riga1`nriga2`n"
         $r = Test-PeriodCompareInstallation -TargetDir $fx.Target -CompatFile $fx.Compat -PayloadDir $fx.Payload
         $r.MatchesUpstream | Should Be 1
@@ -202,14 +206,14 @@ Describe "Verify: riconoscimento upstream indipendente dalle fine riga" {
         Remove-Item $fx.Root -Recurse -Force
     }
 
-    It "riconosce come upstream un file con fine riga LF" {
+    It "recognizes an LF file as upstream" {
         $fx = New-VerifyFixture -TargetContent "riga1`nriga2`n" -PayloadContent "patched`n" -UpstreamLfContent "riga1`nriga2`n"
         $r = Test-PeriodCompareInstallation -TargetDir $fx.Target -CompatFile $fx.Compat -PayloadDir $fx.Payload
         $r.MatchesUpstream | Should Be 1
         Remove-Item $fx.Root -Recurse -Force
     }
 
-    It "segnala come modificato un file con contenuto realmente diverso" {
+    It "flags a file with genuinely different content as modified" {
         $fx = New-VerifyFixture -TargetContent "riga1`r`nMODIFICATA`r`n" -PayloadContent "patched`n" -UpstreamLfContent "riga1`nriga2`n"
         $r = Test-PeriodCompareInstallation -TargetDir $fx.Target -CompatFile $fx.Compat -PayloadDir $fx.Payload
         $r.MatchesUpstream | Should Be 0
@@ -217,7 +221,7 @@ Describe "Verify: riconoscimento upstream indipendente dalle fine riga" {
         Remove-Item $fx.Root -Recurse -Force
     }
 
-    It "riconosce come gia patchato un file CRLF uguale al payload LF" {
+    It "recognizes a CRLF file equal to the LF payload as already patched" {
         $fx = New-VerifyFixture -TargetContent "patched`r`nlinea2`r`n" -PayloadContent "patched`nlinea2`n" -UpstreamLfContent "riga1`nriga2`n"
         $r = Test-PeriodCompareInstallation -TargetDir $fx.Target -CompatFile $fx.Compat -PayloadDir $fx.Payload
         $r.AlreadyPatched | Should Be 1
@@ -225,9 +229,9 @@ Describe "Verify: riconoscimento upstream indipendente dalle fine riga" {
     }
 }
 
-Describe "Installer: data di modifica dei file" {
+Describe "Installer: file modification times" {
 
-    $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+    $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
     $InstallerScript = Join-Path $RepoRoot "installer\PeriodCompare.ps1"
     $PayloadDir = Join-Path $RepoRoot "payload"
 
@@ -240,9 +244,9 @@ Describe "Installer: data di modifica dei file" {
         return $root
     }
 
-    # tsc -b e webpack decidono cosa ricompilare confrontando le date dei file: un file
-    # copiato con la data vecchia del payload viene considerato gia compilato.
-    It "dopo Install tutti i file del payload hanno la data dell'installazione" {
+    # tsc -b and webpack decide what to recompile by comparing file timestamps: a file
+    # copied with the old payload timestamp would be considered already compiled.
+    It "after Install every payload file carries the installation timestamp" {
         $root = New-MockSupersetTree
         $before = (Get-Date).AddSeconds(-2)
         & $InstallerScript -Action Install -TargetDir $root -SkipBuild | Out-Null
@@ -258,16 +262,16 @@ Describe "Installer: data di modifica dei file" {
         Remove-Item -LiteralPath $root -Recurse -Force
     }
 
-    It "dopo Uninstall i file ripristinati hanno la data del ripristino" {
+    It "after Uninstall restored files carry the restore timestamp" {
         $root = New-MockSupersetTree
         $existing = Join-Path $root "superset\config.py"
         New-Item -ItemType Directory -Path (Split-Path $existing -Parent) -Force | Out-Null
-        [System.IO.File]::WriteAllText($existing, "ORIGINALE = 1`n", [System.Text.UTF8Encoding]::new($false))
+        [System.IO.File]::WriteAllText($existing, "ORIGINAL = 1`n", [System.Text.UTF8Encoding]::new($false))
         (Get-Item $existing).LastWriteTime = (Get-Date).AddYears(-1)
         & $InstallerScript -Action Install -TargetDir $root -SkipBuild | Out-Null
         $before = (Get-Date).AddSeconds(-2)
         & $InstallerScript -Action Uninstall -TargetDir $root | Out-Null
-        (Get-Content $existing -Raw).Trim() | Should Be "ORIGINALE = 1"
+        (Get-Content $existing -Raw).Trim() | Should Be "ORIGINAL = 1"
         ((Get-Item $existing).LastWriteTime -ge $before) | Should Be $true
         Remove-Item -LiteralPath $root -Recurse -Force
     }

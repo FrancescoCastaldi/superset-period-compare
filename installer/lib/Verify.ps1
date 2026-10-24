@@ -2,9 +2,9 @@
 # Verifies target Superset tree compatibility, check status, and ensures user plugins safety.
 
 function Get-LfNormalizedHash {
-    # SHA256 del contenuto con CRLF ridotto a LF. Un clone Git su Windows con
-    # core.autocrlf=true ha i file in CRLF, mentre gli hash di compat.json e del
-    # payload sono calcolati sul contenuto con LF.
+    # SHA256 of the content with CRLF reduced to LF. A Git clone on Windows with
+    # core.autocrlf=true has CRLF files, while the hashes in compat.json and the
+    # payload are computed on LF content.
     param([Parameter(Mandatory = $true)][string]$Path)
 
     $bytes = [System.IO.File]::ReadAllBytes($Path)

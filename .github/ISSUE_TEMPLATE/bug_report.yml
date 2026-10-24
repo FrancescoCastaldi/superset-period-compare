@@ -1,0 +1,51 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["type: bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what you got.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Installer (install, uninstall, verify)
+        - PeriodCompare filter
+        - Chart (Table, Big Number, Timeseries, Pivot Table)
+        - Backend (comparison values, alignment)
+        - Documentation
+    validations:
+      required: true
+  - type: input
+    id: superset
+    attributes:
+      label: Superset version
+      placeholder: "6.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: build
+    attributes:
+      label: How was the frontend built
+      options:
+        - npm run build
+        - npm run build-dev
+        - webpack dev server
+        - not built yet
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output, errors and console messages
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I ran `bin\verify.bat` and attached its report if the problem is about the installer
+        - label: The data used contains no real or personal information
