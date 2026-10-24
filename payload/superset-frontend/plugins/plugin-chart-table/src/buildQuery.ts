@@ -118,11 +118,15 @@ const buildQuery: BuildQuery<TableChartFormData> = (
       }
     }
 
+    // extra_form_data.time_compare is a string in upstream filters and a list of
+    // ranges in the PeriodCompare filter: wrapping a list in an array would send
+    // time_offsets: [["..."]], which the backend rejects.
+    const dashboardTimeCompare = ensureIsArray(extra_form_data?.time_compare);
     if (
-      extra_form_data?.time_compare &&
-      !timeOffsets.includes(extra_form_data.time_compare)
+      !isEmpty(dashboardTimeCompare) &&
+      !dashboardTimeCompare.every(offset => timeOffsets.includes(offset))
     ) {
-      timeOffsets = [extra_form_data.time_compare];
+      timeOffsets = dashboardTimeCompare;
     }
 
     let temporalColumnAdded = false;
