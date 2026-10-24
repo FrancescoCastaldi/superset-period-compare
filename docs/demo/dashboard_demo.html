@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apache Superset 6.1.0 - Chart Nativi con Period Compare</title>
+  <title>Period Compare - static demo</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -422,19 +422,19 @@
     <div class="nav-brand">
       <div class="superset-badge">S</div>
       <span>Apache Superset 6.1.0</span>
-      <span style="color:#94a3b8;font-size:13px;font-weight:400;">/ Dashboard / Performance Vendite</span>
+      <span style="color:#94a3b8;font-size:13px;font-weight:400;">/ Dashboard / Sales Performance</span>
     </div>
-    <div style="font-size:12px;color:#cbd5e1;">Ambiente Patchato (MainPreset.ts con PeriodCompare)</div>
+    <div style="font-size:12px;color:#cbd5e1;">Static mock-up of a patched Superset (MainPreset.ts with PeriodCompare)</div>
   </header>
 
   <div class="dashboard-header">
     <div class="dashboard-title">
       <h1>
-        Collaudo Chart Nativi Superset 6.1.0
-        <span class="badge-native">100% Nativi Ufficiali</span>
+        Superset 6.1.0 native charts with Period Compare
+        <span class="badge-native">Mock-up, sample figures</span>
       </h1>
       <p class="dashboard-subtitle">
-        I componenti grafici sottostanti sono i plugin nativi forniti da Apache Superset (senza plugin custom)
+        A static illustration of the filter and of the four chart types. It is not a running Superset and the figures are invented.
       </p>
     </div>
   </div>
@@ -442,55 +442,55 @@
   <div class="layout-container">
 
     <aside class="filter-sidebar">
-      <div class="filter-title">Filtri Dashboard</div>
+      <div class="filter-title">Dashboard filters</div>
 
       <div class="filter-card">
-        <div class="filter-card-title">Filtro Nativo PeriodCompare</div>
+        <div class="filter-card-title">PeriodCompare native filter</div>
 
         <div>
-          <div class="control-label">Periodo Riferimento:</div>
+          <div class="control-label">Reference period:</div>
           <select id="sel-ref" class="select-control" onchange="applyFilters()">
-            <option value="2026-01">Gennaio 2026</option>
-            <option value="2025-12">Dicembre 2025</option>
+            <option value="2026-01">January 2026</option>
+            <option value="2025-12">December 2025</option>
             <option value="2025-Q4">Q4 2025</option>
           </select>
         </div>
 
         <div>
-          <div class="control-label">Confronto Temporale:</div>
+          <div class="control-label">Comparison:</div>
           <select id="sel-comp" class="select-control" onchange="applyFilters()">
-            <option value="prev_year" selected>Anno Precedente (Gennaio 2025)</option>
-            <option value="prev_month">Mese Precedente (Dicembre 2025)</option>
-            <option value="custom">Personalizzato (2025-01-01 : 2025-01-31)</option>
+            <option value="prev_year" selected>Previous year (January 2025)</option>
+            <option value="prev_month">Previous month (December 2025)</option>
+            <option value="custom">Custom (2025-01-01 : 2025-01-31)</option>
           </select>
         </div>
 
         <div>
-          <div class="control-label">Tipo Calcolo:</div>
+          <div class="control-label">Calculation:</div>
           <select id="sel-calc" class="select-control" onchange="applyFilters()">
-            <option value="actual">Valori Effettivi Affiancati</option>
-            <option value="difference">Differenza (Delta)</option>
-            <option value="percentage">Variazione Percentuale (%)</option>
+            <option value="actual">Actual values side by side</option>
+            <option value="difference">Difference (delta)</option>
+            <option value="percentage">Percentage change (%)</option>
           </select>
         </div>
 
-        <button class="btn-apply" onclick="applyFilters()">Aggiorna Grafici Nativi</button>
+        <button class="btn-apply" onclick="applyFilters()">Update charts</button>
       </div>
 
       <div style="font-size:11px;color:#64748b;line-height:1.4;">
-        <strong>Nota tecnica:</strong> Il filtro inietta `time_offsets` e `comparison_type` nel query context.
-        I chart nativi leggono questi parametri e visualizzano i dati secondo il rispettivo contratto grafico.
+        <strong>Technical note:</strong> the filter injects `time_offsets` and `comparison_type` into the query context.
+        The charts read these parameters and display the data according to their own contract.
       </div>
     </aside>
 
     <main class="canvas">
 
       <div class="tech-note">
-        <strong>Conferma di Universalita sui Chart Nativi di Apache Superset 6.1.0:</strong>
-        I 4 pannelli sottostanti utilizzano esclusivamente le definizioni native di Superset 6.1.0:
+        <strong>About this demo:</strong>
+        The 4 panels below mimic the native chart types of Superset 6.1.0:
         <strong>BigNumberPeriodOverPeriod</strong> (plugin nativo `PopKPI.tsx`),
-        <strong>EchartsTimeseriesLine</strong>, <strong>EchartsTimeseriesBar</strong> e <strong>TableChartPlugin</strong>.
-        Nessun plugin personalizzato utente e' impiegato per questo rendering.
+        <strong>EchartsTimeseriesLine</strong>, <strong>EchartsTimeseriesBar</strong> and <strong>TableChartPlugin</strong>.
+        They are drawn with static sample data in this page; no Superset code runs here.
       </div>
 
       <!--Native BigNumberPeriodOverPeriod (PopKPI)-->
@@ -503,22 +503,22 @@
 
           <div class="chart-panel">
             <div class="panel-header">
-              <span class="panel-title">Fatturato Netto</span>
+              <span class="panel-title">Net revenue</span>
             </div>
             <div class="pop-kpi-container">
-              <div class="pop-kpi-metric-name">SUM(FATTURATO)</div>
+              <div class="pop-kpi-metric-name">SUM(REVENUE)</div>
               <div class="pop-kpi-big-number-row">
-                <span id="pop1-val">248.500 €</span>
+                <span id="pop1-val">€248,500</span>
                 <span class="pop-kpi-arrow up" id="pop1-arrow">↑</span>
               </div>
               <div class="pop-kpi-symbols-row">
                 <div class="pop-kpi-symbol-item">
                   <span class="pop-kpi-badge badge-previous">#</span>
-                  <span id="pop1-prev">215.200 €</span>
+                  <span id="pop1-prev">€215,200</span>
                 </div>
                 <div class="pop-kpi-symbol-item">
                   <span class="pop-kpi-badge badge-delta-pos" id="pop1-badge-delta">△</span>
-                  <span id="pop1-diff">+33.300 €</span>
+                  <span id="pop1-diff">+€33,300</span>
                 </div>
                 <div class="pop-kpi-symbol-item">
                   <span class="pop-kpi-badge badge-delta-pos" id="pop1-badge-pct">%</span>
@@ -531,18 +531,18 @@
 
           <div class="chart-panel">
             <div class="panel-header">
-              <span class="panel-title">Volume Ordini</span>
+              <span class="panel-title">Order volume</span>
             </div>
             <div class="pop-kpi-container">
-              <div class="pop-kpi-metric-name">COUNT(DISTINCT ORDINE_ID)</div>
+              <div class="pop-kpi-metric-name">COUNT(DISTINCT ORDER_ID)</div>
               <div class="pop-kpi-big-number-row">
-                <span id="pop2-val">3.420</span>
+                <span id="pop2-val">3,420</span>
                 <span class="pop-kpi-arrow up" id="pop2-arrow">↑</span>
               </div>
               <div class="pop-kpi-symbols-row">
                 <div class="pop-kpi-symbol-item">
                   <span class="pop-kpi-badge badge-previous">#</span>
-                  <span id="pop2-prev">3.110</span>
+                  <span id="pop2-prev">3,110</span>
                 </div>
                 <div class="pop-kpi-symbol-item">
                   <span class="pop-kpi-badge badge-delta-pos" id="pop2-badge-delta">△</span>
@@ -617,47 +617,47 @@
       <!--Native TableChartPlugin-->
       <div>
         <div class="section-label">
-          3. Chart Nativo: Table Chart con Colonne di Confronto
+          3. Native chart: Table with comparison columns
           <span class="tag-viztype">table</span>
         </div>
         <div class="chart-panel" style="margin-top:10px;">
           <table class="superset-native-table">
             <thead>
               <tr>
-                <th>Categoria Prodotto</th>
-                <th class="tar">Fatturato Attuale</th>
-                <th class="tar" id="th-comp">Fatturato (Confronto)</th>
-                <th class="tar">Differenza Netta</th>
-                <th class="tar">Scostamento %</th>
+                <th>Product category</th>
+                <th class="tar">Current revenue</th>
+                <th class="tar" id="th-comp">Revenue (comparison)</th>
+                <th class="tar">Net difference</th>
+                <th class="tar">Change %</th>
               </tr>
             </thead>
             <tbody id="native-table-body">
               <tr>
                 <td><strong>Hardware & Sistemi</strong></td>
-                <td class="tar">94.200 €</td>
-                <td class="tar" id="td-hw-comp">82.100 €</td>
-                <td class="tar col-delta-up" id="td-hw-diff">+12.100 €</td>
+                <td class="tar">€94,200</td>
+                <td class="tar" id="td-hw-comp">€82,100</td>
+                <td class="tar col-delta-up" id="td-hw-diff">+€12,100</td>
                 <td class="tar col-delta-up" id="td-hw-pct">+14,7%</td>
               </tr>
               <tr>
                 <td><strong>Software & Soluzioni</strong></td>
-                <td class="tar">68.400 €</td>
-                <td class="tar" id="td-sw-comp">56.000 €</td>
-                <td class="tar col-delta-up" id="td-sw-diff">+12.400 €</td>
+                <td class="tar">€68,400</td>
+                <td class="tar" id="td-sw-comp">€56,000</td>
+                <td class="tar col-delta-up" id="td-sw-diff">+€12,400</td>
                 <td class="tar col-delta-up" id="td-sw-pct">+22,1%</td>
               </tr>
               <tr>
                 <td><strong>Servizi Cloud & Hosting</strong></td>
-                <td class="tar">52.900 €</td>
-                <td class="tar" id="td-cl-comp">49.300 €</td>
-                <td class="tar col-delta-up" id="td-cl-diff">+3.600 €</td>
+                <td class="tar">€52,900</td>
+                <td class="tar" id="td-cl-comp">€49,300</td>
+                <td class="tar col-delta-up" id="td-cl-diff">+€3,600</td>
                 <td class="tar col-delta-up" id="td-cl-pct">+7,3%</td>
               </tr>
               <tr>
                 <td><strong>Consulenza Specialistica</strong></td>
-                <td class="tar">33.000 €</td>
-                <td class="tar" id="td-co-comp">27.800 €</td>
-                <td class="tar col-delta-up" id="td-co-diff">+5.200 €</td>
+                <td class="tar">€33,000</td>
+                <td class="tar" id="td-co-comp">€27,800</td>
+                <td class="tar col-delta-up" id="td-co-diff">+€5,200</td>
                 <td class="tar col-delta-up" id="td-co-pct">+18,7%</td>
               </tr>
             </tbody>
@@ -715,7 +715,7 @@
             params.forEach(p => {
               res += `<div style="display:flex;justify-content:space-between;gap:12px;margin:3px 0;">
                         <span>${p.marker} ${p.seriesName}:</span>
-                        <strong>${p.value.toLocaleString('it-IT')} €</strong>
+                        <strong>${p.value.toLocaleString('en-US')} €</strong>
                       </div>`;
             });
             return res;
@@ -735,12 +735,12 @@
         },
         yAxis: {
           type: 'value',
-          axisLabel: { formatter: (v) => `${(v / 1000).toFixed(0)}k €`, color: '#64748b' },
+          axisLabel: { formatter: (v) => `${(v / 1000).toFixed(0)}k`, color: '#64748b' },
           splitLine: { lineStyle: { color: '#f1f5f9' } }
         },
         series: [
           {
-            name: 'Fatturato (Gen 2026)',
+            name: 'Revenue (Jan 2026)',
             type: 'line',
             data: data2026,
             smooth: true,
@@ -780,12 +780,12 @@
         },
         yAxis: {
           type: 'value',
-          axisLabel: { formatter: '{value}k €', color: '#64748b' },
+          axisLabel: { formatter: '€{value}k', color: '#64748b' },
           splitLine: { lineStyle: { color: '#f1f5f9' } }
         },
         series: [
           {
-            name: 'Fatturato (Gen 2026)',
+            name: 'Revenue (Jan 2026)',
             type: 'bar',
             data: [49.5, 54.9, 57.2, 59.9],
             itemStyle: { color: '#20a7c9', borderRadius: [4, 4, 0, 0] }
@@ -803,46 +803,46 @@
     function applyFilters() {
       const compPreset = document.getElementById('sel-comp').value;
       if (compPreset === 'prev_month') {
-        document.getElementById('pop1-prev').textContent = '234.500 €';
-        document.getElementById('pop1-diff').textContent = '+14.000 €';
+        document.getElementById('pop1-prev').textContent = '€234,500';
+        document.getElementById('pop1-diff').textContent = '+€14,000';
         document.getElementById('pop1-pct').textContent = '+6,0%';
         document.getElementById('pop1-range').textContent = 'vs 2025-12-01 : 2025-12-31';
 
-        document.getElementById('pop2-prev').textContent = '3.250';
+        document.getElementById('pop2-prev').textContent = '3,250';
         document.getElementById('pop2-diff').textContent = '+170';
         document.getElementById('pop2-pct').textContent = '+5,2%';
         document.getElementById('pop2-range').textContent = 'vs 2025-12-01 : 2025-12-31';
 
-        document.getElementById('th-comp').textContent = 'Fatturato (Dic 2025)';
-        document.getElementById('td-hw-comp').textContent = '89.000 €';
-        document.getElementById('td-hw-diff').textContent = '+5.200 €';
+        document.getElementById('th-comp').textContent = 'Revenue (Dec 2025)';
+        document.getElementById('td-hw-comp').textContent = '€89,000';
+        document.getElementById('td-hw-diff').textContent = '+€5,200';
         document.getElementById('td-hw-pct').textContent = '+5,8%';
 
-        renderLine(data2025Month, 'Fatturato (Dic 2025)');
-        renderBar([46.2, 51.0, 53.8, 56.5], 'Fatturato (Dic 2025)');
+        renderLine(data2025Month, 'Revenue (Dec 2025)');
+        renderBar([46.2, 51.0, 53.8, 56.5], 'Revenue (Dec 2025)');
       } else {
-        document.getElementById('pop1-prev').textContent = '215.200 €';
-        document.getElementById('pop1-diff').textContent = '+33.300 €';
+        document.getElementById('pop1-prev').textContent = '€215,200';
+        document.getElementById('pop1-diff').textContent = '+€33,300';
         document.getElementById('pop1-pct').textContent = '+15,5%';
         document.getElementById('pop1-range').textContent = 'vs 2025-01-01 : 2025-01-31';
 
-        document.getElementById('pop2-prev').textContent = '3.110';
+        document.getElementById('pop2-prev').textContent = '3,110';
         document.getElementById('pop2-diff').textContent = '+310';
         document.getElementById('pop2-pct').textContent = '+10,0%';
         document.getElementById('pop2-range').textContent = 'vs 2025-01-01 : 2025-01-31';
 
-        document.getElementById('th-comp').textContent = 'Fatturato (Gen 2025)';
-        document.getElementById('td-hw-comp').textContent = '82.100 €';
-        document.getElementById('td-hw-diff').textContent = '+12.100 €';
+        document.getElementById('th-comp').textContent = 'Revenue (Jan 2025)';
+        document.getElementById('td-hw-comp').textContent = '€82,100';
+        document.getElementById('td-hw-diff').textContent = '+€12,100';
         document.getElementById('td-hw-pct').textContent = '+14,7%';
 
-        renderLine(data2025Year, 'Fatturato (Gen 2025)');
-        renderBar([42.8, 47.3, 49.9, 52.2], 'Fatturato (Gen 2025)');
+        renderLine(data2025Year, 'Revenue (Jan 2025)');
+        renderBar([42.8, 47.3, 49.9, 52.2], 'Revenue (Jan 2025)');
       }
     }
 
-    renderLine(data2025Year, 'Fatturato (Gen 2025)');
-    renderBar([42.8, 47.3, 49.9, 52.2], 'Fatturato (Gen 2025)');
+    renderLine(data2025Year, 'Revenue (Jan 2025)');
+    renderBar([42.8, 47.3, 49.9, 52.2], 'Revenue (Jan 2025)');
 
     window.addEventListener('resize', () => {
       nativeLine.resize();
