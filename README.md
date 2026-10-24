@@ -1,66 +1,95 @@
 # Superset Period Compare
 
-Patch modulare, universale e reversibile per Apache Superset 6.1.0 che abilita il confronto libero tra un periodo di riferimento e un periodo di confronto su qualsiasi colonna temporale della dashboard.
+A modular, reversible patch for Apache Superset 6.1.0 that lets a dashboard compare a reference period with a comparison period on any time column.
 
-## Cos'e' e a cosa serve
+## What it does
 
-Nei cruscotti aziendali di Business Intelligence, una delle esigenze primarie e' confrontare l'andamento di una metrica (es. fatturato, ordini, ticket di assistenza, accessi) tra due intervalli temporali definiti liberamente dall'utente finale: ad esempio il mese corrente rispetto al mese precedente, oppure l'anno in corso rispetto all'anno passato, o due finestre arbitrarie scelte su calendario.
+In business dashboards a primary need is to compare a metric (revenue, orders, support tickets, visits) between two time ranges freely chosen by the user: the current month against the previous one, this year against last year, or two arbitrary windows picked on a calendar.
 
-Storicamente, in Apache Superset questo risultato richiedeva complessi artifici a livello di database: viste SQL cartesiane, query pesanti con self-join, duplicazione delle righe o filtri Jinja complessi non adatti agli utenti di business.
+In Apache Superset this has historically required database workarounds: Cartesian SQL views, heavy self joins, duplicated rows or complex Jinja filters that business users cannot manage.
 
-Superset Period Compare risolve questo problema alla radice, sfruttando l'architettura nativa di Apache Superset 6.1.0:
-1. Aggiunge un filtro nativo di dashboard denominato **PeriodCompare** (Filtro confronto periodi).
-2. Fornisce all'utente una selezione immediata tra preset comuni (Periodo precedente, Mese precedente, Anno precedente) oppure una seconda finestra di calendario per il periodo di confronto personalizzato.
-3. Consente di visualizzare i dati come valori effettivi affiancati, differenza algebrica assoluta, variazione percentuale o rapporto.
-4. Allinea automaticamente le date nei grafici temporali per grana (giorno, settimana, mese), evitando buchi o disallineamenti di calendario tra mesi di diversa lunghezza (es. 31 vs 30 giorni o anni bisestili).
-5. Si installa con un click tramite script automatico, non tocca in alcun modo i plugin personalizzati dell'utente e si puo' disinstallare ripristinando lo stato originale byte per byte.
+Superset Period Compare solves it with the native machinery of Superset 6.1.0:
 
-## Grafici supportati
+1. It adds a native dashboard filter called **PeriodCompare** (period comparison filter).
+2. It gives the user presets (previous period, previous month, previous year) or a second calendar window for a custom comparison period.
+3. It shows the data as actual values side by side, absolute difference, percentage change or ratio.
+4. It aligns dates on time series by granularity (day, week, month), avoiding gaps and misalignments between months of different length or leap years.
+5. It installs with one command, never touches user plugins and can be removed, restoring the original files byte for byte.
 
-- **Table**: visualizza metriche e colonne di confronto affiancate o come scostamento.
-- **Big Number with Trendline & Big Number Period over Period**: KPI principale e variazione percentuale rispetto al periodo di confronto.
-- **ECharts Timeseries (Line, Bar, Smooth Line, Step Line)**: serie temporali sovrapposte con allineamento puntuale delle date.
-- **Pivot Table v2**: matrice pivot aggregata con colonne di confronto.
+## Supported charts
 
-## Quickstart: Installazione in 3 comandi
+- **Table**: metrics and comparison columns side by side, or as a variation.
+- **Big Number with Time Period Comparison**: the main KPI and its variation against the comparison period (needs the `CHART_PLUGINS_EXPERIMENTAL` feature flag).
+- **ECharts Timeseries (Line, Bar, Smooth Line, Step Line)**: overlaid series with exact date alignment.
+- **Pivot Table v2**: aggregated pivot matrix with comparison columns.
 
-### Requisiti
-- Apache Superset 6.1.0
-- Windows PowerShell 5.1 o successivo
-- Node 20 (opzionale, solo per ricompilare il frontend se non si usa un ambiente gia compilato)
+## Quick start
 
-### Procedura
+Requirements: Apache Superset 6.1.0 and Windows PowerShell 5.1 or later. Node 20 is needed only to rebuild the frontend.
 
-1. Clonare o scaricare questo repository nella cartella desiderata:
 ```cmd
 git clone https://github.com/FrancescoCastaldi/superset-period-compare.git
 cd superset-period-compare
+
+:: 1. Check the target without changing anything
+bin\dry-run.bat D:\Path\To\Your\Superset
+
+:: 2. Apply the patch (a safety backup is created first)
+bin\install.bat D:\Path\To\Your\Superset
+
+:: 3. Roll back at any time
+bin\uninstall.bat D:\Path\To\Your\Superset
 ```
 
-2. Eseguire una verifica preventiva senza modifiche:
-```cmd
-dry-run.bat D:\Percorso\Al\Tuo\Superset
+After installing, rebuild the frontend (`npm run build`) or run your usual build. Details and Docker notes are in [docs/installation.md](docs/installation.md).
+
+## Verification status
+
+| Area | Status |
+|:---|:---|
+| Backend comparison (`/api/v1/chart/data`) | 27 of 27 checks match direct SQL (`scripts/e2e/verify-backend-compare.py`) |
+| Installer (install, rollback, hashes, timestamps) | 11 Pester tests |
+| Date arithmetic and helper contract | 28 and 5 Node tests |
+| Backend unit tests | 17 pytest tests |
+| TypeScript build inside Superset 6.1.0 | compiled with no TypeScript errors |
+| Behaviour in the browser with a comparison active | being validated, see the [changelog](CHANGELOG.md) |
+
+The test suites do not run the TypeScript compiler. See [tests/README.md](tests/README.md) and [docs/development.md](docs/development.md).
+
+## Repository layout
+
+```
+.
+├── .github/              CI and release workflows, issue and PR templates, CODEOWNERS, Dependabot
+├── bin/                  Windows launchers: install, uninstall, verify, dry-run
+├── compat/               compat.json: SHA-256 of the untouched upstream files (LF endings)
+├── docs/                 architecture, installation, upgrading, data contract, development
+│   ├── adr/              architecture decision records
+│   ├── demo/             static HTML demo of the filter
+│   └── plans/            implementation plans
+├── installer/            PeriodCompare.ps1 and its libraries (backup, verify, patch, restore, build)
+├── payload/              the files copied into the Superset tree, with the Superset layout
+├── scripts/              make-payload.ps1
+│   └── e2e/              data loader, dashboard setup and backend verification for a running Superset
+└── tests/                installer (Pester), backend (pytest), frontend (Node)
 ```
 
-3. Applicare la patch (crea automaticamente un backup di sicurezza prima di modificare qualsiasi file):
-```cmd
-install.bat D:\Percorso\Al\Tuo\Superset
-```
+## Documentation
 
-Per disinstallare in qualsiasi momento e ripristinare Superset allo stato originale:
-```cmd
-uninstall.bat D:\Percorso\Al\Tuo\Superset
-```
+- [Architecture](docs/architecture.md): data flow, temporal alignment and design decisions.
+- [Installation and rollback](docs/installation.md): launchers, CLI options, backups and Docker.
+- [Data contract](docs/data-contract.md): payloads and `extraFormData` structures.
+- [Upgrading](docs/upgrading.md): moving the patch to Superset 6.2 or 7.
+- [Migrating from Cartesian views](docs/migrating-from-cartesian-views.md): retiring the old helper views.
+- [Development guide](docs/development.md): building and testing the patch against a real Superset in Docker.
+- [Branching and releases](docs/branching-and-releases.md): workflow, commit convention and versioning.
+- [Architecture decision records](docs/adr/README.md).
+- [Changelog](CHANGELOG.md).
 
-## Test
+## Contributing
 
-Il repository include le suite in `tests/`: 17 test backend pytest, 28 + 5 test frontend eseguibili con solo Node e 5 contesti Pester per l'installer. I comandi per eseguirle sono in [tests/README.md](tests/README.md). La compilazione del frontend non e coperta dai test.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md).
 
-## Struttura della documentazione
+## License
 
-- [Architettura tecnica e decisioni di design](ARCHITETTURA.md): flussi dati, ciclo di vita delle query e logica di allineamento temporale.
-- [Guida all'installazione e rollback](INSTALLAZIONE.md): opzioni CLI, gestione backup e compatibilita Docker.
-- [Guida alla migrazione da viste cartesiane](MIGRARE_DA_VISTE_CARTESIANE.md): come semplificare il database e dismettere le vecchie viste di appoggio.
-- [Aggiornamento a versioni successive](AGGIORNARE_VERSIONE.md): come verificare e portare la patch su Superset 6.2+ o Superset 7.
-- [Contratto dati formale](docs/CONTRATTO.md): specifiche dettagliate dei payload e delle strutture extraFormData.
-- [Registro delle modifiche](CHANGELOG.md): storico versioni e modifiche rilasciate.
+No license has been chosen yet. The files in `payload/` are modified copies of Apache Superset, which is released under the Apache License 2.0. Choose and add a `LICENSE` file before sharing the repository.

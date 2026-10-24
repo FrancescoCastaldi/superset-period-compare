@@ -1,28 +1,28 @@
-# Architettura Tecnica: Superset Period Compare
+# Technical Architecture: Superset Period Compare
 
-Questo documento descrive il funzionamento interno, il flusso dei dati e le decisioni architetturali alla base del modulo Period Compare per Apache Superset 6.1.0.
+This document describes the internals, the data flow and the architectural decisions behind the Period Compare module for Apache Superset 6.1.0. Individual decisions are recorded in [adr/](adr/README.md).
 
-## 1. Principi Architetturali
+## 1. Architectural principles
 
-1. **Riuso delle primitive native**:
-   Superset 6.1.0 possiede gia un motore backend (`processing_time_offsets` in `helpers.py`) capace di gestire offset ad intervallo esplicito tramite il feature flag `DATE_RANGE_TIMESHIFTS_ENABLED`. Il modulo estende questo meccanismo senza introdurre motori paralleli, filtri duplicati o logiche di templating Jinja.
-2. **Allineamento temporale 1:1**:
-   La limitazione principale di Superset upstream era la mancanza di allineamento dell'asse temporale per gli offset a intervallo nelle serie storiche: Superset eliminava la colonna data secondaria producendo valori nulli (NaN). Period Compare trasla temporalmente la colonna data del periodo di confronto con granularita esatta (per mesi interi se le date cadono a inizio mese, oppure per giorni altrimenti), consentendo una join pulita sulla colonna temporale del periodo di riferimento.
-3. **Isolamento e rispetto dei plugin utente**:
-   Nessun file presente in `superset-frontend/plugins/superset-plugin-*` viene toccato o sovrascritto. L'unico punto di contatto del registro plugin e' `MainPreset.ts`, modificato esclusivamente tra marcatori espliciti `period-compare:begin` e `period-compare:end`.
+1. **Reuse the native primitives.**
+   Superset 6.1.0 already has a backend engine (`processing_time_offsets` in `helpers.py`) that handles explicit range offsets through the feature flag `DATE_RANGE_TIMESHIFTS_ENABLED`. The module extends this mechanism without introducing parallel engines, duplicated filters or Jinja templating logic.
+2. **One to one temporal alignment.**
+   The main limitation of upstream Superset was the lack of axis alignment for range offsets on time series: Superset dropped the secondary date column and produced null values (NaN). Period Compare shifts the date column of the comparison period by the exact granularity (whole months when the dates fall on the first day of a month, otherwise days), which allows a clean join on the time column of the reference period.
+3. **Isolation and respect for user plugins.**
+   No file under `superset-frontend/plugins/superset-plugin-*` is touched or overwritten. The only point of contact with the plugin registry is `MainPreset.ts`, which is changed only between the explicit markers `period-compare:begin` and `period-compare:end`.
 
-## 2. Diagramma del Flusso dei Dati
+## 2. Data flow
 
 ```
  +-------------------------------------------------------------------+
- | Dashboard UI (Filtro Nativo PeriodCompare)                        |
- | Utente seleziona:                                                 |
- |  - Periodo Riferimento: "2026-09-01 : 2026-10-01"                 |
- |  - Preset Confronto:    "Mese precedente" (o intervallo libero)   |
- |  - Modalita Calcolo:    "Valori effettivi", "Differenza", "%"     |
+ | Dashboard UI (native PeriodCompare filter)                        |
+ | The user selects:                                                 |
+ |  - Reference period:  "2026-09-01 : 2026-10-01"                   |
+ |  - Comparison preset: "Previous month" (or a free range)          |
+ |  - Calculation mode:  "Actual values", "Difference", "%"          |
  +----------------------------------+--------------------------------+
                                     |
-                                    v emette dataMask (extraFormData)
+                                    v emits a dataMask (extraFormData)
  +-------------------------------------------------------------------+
  | extraFormData:                                                    |
  |   time_range:      "2026-09-01 : 2026-10-01"                      |
@@ -30,45 +30,57 @@ Questo documento descrive il funzionamento interno, il flusso dei dati e le deci
  |   comparison_type: "values"                                       |
  +----------------------------------+--------------------------------+
                                     |
-                                    v merge via Redux
+                                    v merged through Redux
  +-------------------------------------------------------------------+
- | Grafici (Table, Big Number, ECharts Timeseries, Pivot Table)      |
- |  - Chiamata ad applyDashboardComparison(formData)                 |
- |  - Se follow_dashboard_comparison !== false:                      |
- |      time_compare locale viene sovrascritto da quello di dashboard|
+ | Charts (Table, Big Number, ECharts Timeseries, Pivot Table)       |
+ |  - call applyDashboardComparison(formData)                        |
+ |  - if follow_dashboard_comparison !== false:                      |
+ |      the local time_compare is overridden by the dashboard one    |
  +----------------------------------+--------------------------------+
                                     |
                                     v buildQuery() -> POST /api/v1/chart/data
  +-------------------------------------------------------------------+
- | Backend Superset (QueryContextProcessor / helpers.py)             |
- |  1. Esegue query principale sul periodo di riferimento            |
- |  2. Esegue query secondaria sul periodo di confronto (offset)     |
+ | Superset backend (QueryContextProcessor / helpers.py)             |
+ |  1. Runs the main query on the reference period                   |
+ |  2. Runs a secondary query on the comparison period (offset)      |
  |  3. In join_offset_dfs():                                         |
- |     - Calcola scostamento temporale (mesi interi o giorni)        |
- |     - Trasla la colonna temporale della query di confronto        |
- |     - Esegue outer/left join con riallineamento delle serie       |
- |  4. Esegue compare.py se e' richiesta differenza o variazione %  |
+ |     - computes the temporal shift (whole months or days)          |
+ |     - shifts the time column of the comparison query              |
+ |     - runs an outer/left join that realigns the series            |
+ |  4. Runs compare.py when a difference or percentage is requested  |
  +----------------------------------+--------------------------------+
                                     |
-                                    v DataFrame consolidato
+                                    v consolidated DataFrame
  +-------------------------------------------------------------------+
- | Frontend Visualizzazione (transformProps)                         |
- |  - Renderizza metriche affiancate, serie sovrapposte o variazioni |
+ | Visualization frontend (transformProps)                           |
+ |  - renders side by side metrics, overlaid series or variations    |
  +-------------------------------------------------------------------+
 ```
 
-## 3. Gestione dei Casi Limite nel Trasferimento Temporale
+The contract between the filter, the helper and the backend is specified in [data-contract.md](data-contract.md).
 
-Il calcolo dello shift in `helpers.py` distingue due modalita:
-- **Shift per Mesi Interi (`pd.DateOffset(months=N)`)**:
-  Applicato quando entrambi gli estremi di inizio cadono al giorno 1 del mese (es. 1 Settembre vs 1 Agosto). Garantisce che il 30 Giugno corrisponda al 30 Agosto, e che l'ultimo giorno del mese resti allineato anche tra mesi con 30 e 31 giorni.
-- **Shift per Giorni (`pd.DateOffset(days=N)`)**:
-  Applicato per periodi infrasettimanali o intervalli arbitrari (es. dal 12 al 24 del mese). Lo scostamento e' esattamente pari al numero di giorni intercorrenti tra le date di inizio.
-- **Anni Bisestili**:
-  Il 29 Febbraio confrontato con l'anno precedente trasla al 28 Febbraio senza errori di fuori scala.
+## 3. Edge cases in the temporal shift
 
-## 4. Controllo Granularita Multi-Colonna Data
+The shift computed in `helpers.py` distinguishes two modes:
 
-In dataset con molteplici colonne data (es. data ordine, data spedizione, data fattura):
-- Ogni grafico mantiene per default la propria colonna temporale assegnata nell'asse X o nella configurazione metrica.
-- Se nella configurazione del filtro PeriodCompare viene indicata una `reference_column`, questa viene propagata tramite `granularity_sqla` per indirizzare specificamente tale dimensione.
+- **Whole month shift (`pd.DateOffset(months=N)`).**
+  Used when both start dates fall on day 1 of a month (for example 1 September against 1 August). It keeps the last day of the month aligned across months of 30 and 31 days.
+- **Day shift (`pd.DateOffset(days=N)`).**
+  Used for intra month periods or arbitrary ranges (for example from the 12th to the 24th). The shift is exactly the number of days between the two start dates.
+- **Periods of different length.**
+  Positions that have no counterpart (March has 31 days, February 28) stay empty at the end of the series. They are never shifted.
+- **Leap years.**
+  29 February compared with the previous year maps to 28 February without out of range errors.
+
+## 4. Multiple date columns
+
+For datasets with several date columns (order date, shipping date, invoice date):
+
+- Every chart keeps its own time column by default (x axis or metric configuration).
+- If a `reference_column` is set in the PeriodCompare filter configuration, it is propagated through `granularity_sqla` to target that dimension. Only a plain column name is propagated, never an ad hoc column.
+
+## 5. Frontend integration notes
+
+- **One shared helper.** Every chart calls `applyDashboardComparison(formData)` at the top of `buildQuery` and `transformProps`. The helper is generic on the form data type, so each chart keeps its own typed form data.
+- **Opt in per chart.** A chart that does not know the `metric__<offset>` columns is not forced to follow the comparison, because the series pivot pipeline of ECharts would break on unexpected columns. The control `follow_dashboard_comparison` lets a chart opt out.
+- **Stable filter state.** The filter applies its data mask once per distinct state of the controls. Re-applying the mask on every render makes the dashboard state change, which re-renders the filter in an infinite loop.

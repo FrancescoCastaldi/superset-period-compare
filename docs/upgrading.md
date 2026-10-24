@@ -1,43 +1,48 @@
-# Procedura di Aggiornamento a Nuove Versioni di Superset
+# Upgrading to New Superset Versions
 
-Questa guida spiega come mantenere o trasferire la patch Period Compare quando viene rilasciata una nuova versione minore o maggiore di Apache Superset (es. 6.2.0, 7.0.0).
+This guide explains how to keep or move the Period Compare patch when a new minor or major version of Apache Superset is released (for example 6.2.0 or 7.0.0).
 
-## 1. Verifica Preventiva di Compatibilita
+## 1. Compatibility check
 
-Prima di applicare la patch su una nuova release di Superset:
+Before applying the patch to a new Superset release:
 
-1. Eseguire una verifica con `verify.bat`:
+1. Run a verification:
    ```cmd
-   verify.bat D:\Percorso\Al\Nuovo\Superset
+   bin\verify.bat D:\Path\To\New\Superset
    ```
-2. Lo script analizzera ogni file rispetto agli hash registrati in `compat.json`. Se alcuni file upstream hanno subito modifiche nel frattempo (es. nuove righe in `helpers.py`), l'installer li segnalera come `ModifiedOrCustom`.
+2. The installer compares every file with the hashes in `compat/compat.json`. If some upstream files changed in the meantime (for example new lines in `helpers.py`), they are reported as `ModifiedOrCustom` instead of matching upstream.
 
-## 2. Allineamento dei File Modificati
+## 2. Files touched by the patch
 
-I file toccati dalla patch appartengono a tre aree ben circoscritte:
+The patch touches three well defined areas.
 
-### Backend Python:
-- `superset/models/helpers.py`: logica di allineamento e join in `join_offset_dfs` e `processing_time_offsets`.
-- `superset/common/query_object.py`: supporto stringhe orarie in `_is_valid_date_range`.
-- `superset/constants.py`: mappatura `time_compare` e `comparison_type` in `EXTRA_FORM_DATA_OVERRIDE_REGULAR_MAPPINGS`.
-- `superset/config.py`: abilitazione feature flag `DATE_RANGE_TIMESHIFTS_ENABLED: True`.
+### Python backend
+- `superset/models/helpers.py`: alignment and join logic in `join_offset_dfs` and `processing_time_offsets`.
+- `superset/common/query_object.py`: support for time strings in `_is_valid_date_range`.
+- `superset/constants.py`: mapping of `time_compare` and `comparison_type` in `EXTRA_FORM_DATA_OVERRIDE_REGULAR_MAPPINGS`.
+- `superset/config.py`: enables the feature flag `DATE_RANGE_TIMESHIFTS_ENABLED: True`.
 
-### Frontend Core e Controlli:
-- `packages/superset-ui-chart-controls/src/utils/applyDashboardComparison.ts`: helper di normalizzazione.
-- `packages/superset-ui-chart-controls/src/sections/timeComparison.tsx`: controllo `follow_dashboard_comparison`.
-- `packages/superset-ui-core/src/query/constants.ts`: costante mappatura override.
+### Frontend core and controls
+- `packages/superset-ui-chart-controls/src/utils/applyDashboardComparison.ts`: normalization helper.
+- `packages/superset-ui-chart-controls/src/sections/timeComparison.tsx`: the `follow_dashboard_comparison` control.
+- `packages/superset-ui-core/src/query/constants.ts`: override mapping constant.
 
-### Filtro Nativo e Registrazioni:
-- `src/filters/components/PeriodCompare/`: modulo indipendente autocontenuto.
-- `src/visualizations/presets/MainPreset.ts`: marcatori `period-compare:begin` e `period-compare:end`.
+### Native filter and registrations
+- `src/filters/components/PeriodCompare/`: self contained, independent module.
+- `src/visualizations/presets/MainPreset.ts`: the markers `period-compare:begin` and `period-compare:end`.
 
-## 3. Rigenerazione del Payload per la Nuova Release
+## 3. Regenerating the payload for the new release
 
-Quando la nuova versione di Superset e' allineata nel proprio ambiente di sviluppo:
-1. Portare le modifiche sul branch di lavoro della nuova versione.
-2. Eseguire lo script di estrazione automatica:
+Once the new Superset version is aligned in your development environment:
+
+1. Port the changes to the working branch of the new version and commit them.
+2. Run the extraction script:
    ```powershell
-   powershell -File tools/make-payload.ps1 -WorktreePath "D:\Percorso\SupersetNuovo" -BaseTag "6.2.0"
+   powershell -File scripts/make-payload.ps1 -WorktreePath "D:\Path\To\NewSuperset" -BaseTag "6.2.0"
    ```
-3. Lo script estrarra i nuovi file in `payload/` e aggiornera il manifest `compat.json` con gli hash esatti della nuova versione di riferimento.
-4. Eseguire la suite Pester di test (`Invoke-Pester tests/installer.Tests.ps1`) per convalidare il flusso di installazione e rollback.
+3. The script copies the new files into `payload/` and rewrites `compat/compat.json` with the exact hashes of the new baseline.
+4. Run the Pester suite to validate installation and rollback:
+   ```powershell
+   Invoke-Pester tests/installer
+   ```
+5. Compile the patched tree with the real Superset toolchain and fix every TypeScript error. The Node and Python test suites of this repository do not run the TypeScript compiler, so a green test run does not prove that the frontend builds.

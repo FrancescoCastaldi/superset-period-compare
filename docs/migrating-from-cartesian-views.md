@@ -1,58 +1,55 @@
-# Guida alla Migrazione da Viste SQL Cartesiane a Period Compare
+# Migrating from Cartesian SQL Views to Period Compare
 
-Questa guida illustra come dismettere le vecchie viste di database con self-join o prodotti cartesiani utilizzate in precedenza per confrontare periodi storici, sostituendole con l'approccio nativo ad alte prestazioni di Superset Period Compare.
+This guide shows how to retire the old database views with self joins or Cartesian products that were used to compare historical periods, and replace them with the native, high performance approach of Superset Period Compare.
 
-## 1. Il Problema delle Viste SQL Tradizionali
+## 1. The problem with traditional SQL views
 
-Per confrontare periodi temporali in Superset, molti team implementavano viste SQL con strutture simili a:
+To compare time periods in Superset, many teams built SQL views like this:
 
 ```sql
-/* VECCHIO APPROCCIO (PROBLEMATICO): */
-SELECT 
+/* OLD APPROACH (PROBLEMATIC): */
+SELECT
     t1.id,
-    t1.data_evento AS data_riferimento,
-    t1.valore AS valore_riferimento,
-    t2.valore AS valore_confronto,
-    (t1.valore - t2.valore) AS differenza
-FROM tabella_eventi t1
-LEFT JOIN tabella_eventi t2 
-    ON t2.categoria = t1.categoria 
-    AND t2.data_evento = DATEADD(month, -1, t1.data_evento);
+    t1.event_date AS reference_date,
+    t1.value AS reference_value,
+    t2.value AS comparison_value,
+    (t1.value - t2.value) AS difference
+FROM events t1
+LEFT JOIN events t2
+    ON t2.category = t1.category
+    AND t2.event_date = DATEADD(month, -1, t1.event_date);
 ```
 
-### Limiti e Inconvenienti del Vecchio Approccio:
-1. **Rigidita**: il confronto e' fisso nel codice SQL (es. solo mese precedente). Per confrontare un anno prima o due finestre arbitrarie servivano viste duplicate.
-2. **Esplosione dei Record**: le self-join su milioni di righe degradano le prestazioni del database e aumentano i tempi di risposta della dashboard.
-3. **Manutenzione Complessa**: ogni modifica di colonna o metrica richiedeva la modifica e il riallineamento delle viste di produzione.
+Drawbacks of the old approach:
 
-## 2. Il Nuovo Approccio Nativo
+1. **Rigidity.** The comparison is fixed in the SQL (for example only the previous month). Comparing with a year ago, or two arbitrary windows, required duplicated views.
+2. **Row explosion.** Self joins over millions of rows degrade database performance and slow down the dashboard.
+3. **Hard maintenance.** Every change to a column or a metric meant editing and realigning the production views.
 
-Con Superset Period Compare, il dataset su Superset punta direttamente alla **tabella nativa semplice** (o vista pulita senza join temporali):
+## 2. The native approach
+
+With Superset Period Compare the dataset points directly at the **plain table** (or a clean view without temporal joins):
 
 ```sql
-/* NUOVO APPROCCIO (SEMPLICE, PULITO E VELOCE): */
-SELECT 
+/* NEW APPROACH (SIMPLE, CLEAN AND FAST): */
+SELECT
     id,
-    data_evento,
-    categoria,
-    valore
-FROM tabella_eventi;
+    event_date,
+    category,
+    value
+FROM events;
 ```
 
-Tutta la logica di confronto viene demandata al motore analitico di Superset:
-1. Il backend esegue due query aggregate distinte e mirate: una sul periodo di riferimento e una su quello di confronto.
-2. Le due query filtrano nativamente solo gli intervalli temporali interessati, sfruttando al meglio indici e partizioni su database.
-3. L'allineamento e il calcolo di scostamento o variazione percentuale avvengono in memoria nel processo analitico di Superset.
+All the comparison logic moves to the analytic engine of Superset:
 
-## 3. Checklist di Migrazione Passo Passo
+1. The backend runs two separate, targeted aggregate queries: one on the reference period and one on the comparison period.
+2. Each query filters only the relevant time ranges, making the best use of indexes and partitions in the database.
+3. Alignment and the calculation of the difference or percentage change happen in memory, in the Superset analytic process.
 
-1. **Creare il dataset semplice**:
-   In Superset, creare o selezionare il dataset puntando alla tabella fisica o vista snella.
-2. **Aggiungere il filtro nativo**:
-   Nella dashboard, creare un nuovo filtro nativo selezionando il tipo `Period comparison filter` (Filtro confronto periodi).
-3. **Collegare i grafici**:
-   Verificare che i grafici della dashboard abbiano attiva l'opzione `Follow dashboard comparison` (attiva per default).
-4. **Validare i totali**:
-   Controllare che i valori mostrati coincidano con i dati storici effettivi.
-5. **Dismettere la vecchia vista**:
-   Rimuovere la vecchia vista SQL o tabella di appoggio dal database, recuperando spazio disco e semplificando la manutenzione.
+## 3. Step by step migration checklist
+
+1. **Create the plain dataset.** In Superset, create or select the dataset that points to the physical table or to a lean view.
+2. **Add the native filter.** In the dashboard, create a new native filter of type `Period comparison filter`.
+3. **Connect the charts.** Check that the charts of the dashboard have the `Follow dashboard comparison` option on (it is on by default).
+4. **Validate the totals.** Check that the displayed values match the actual historical data.
+5. **Retire the old view.** Remove the old SQL view or helper table from the database, recovering disk space and simplifying maintenance.
