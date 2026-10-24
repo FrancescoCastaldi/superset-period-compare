@@ -110,7 +110,10 @@ export default function PeriodCompareFilterPlugin(
       const isSet =
         resolved.referenceRange && resolved.referenceRange !== NO_TIME_RANGE;
       const isComparing = resolved.isActive && !!resolved.comparisonRange;
-      const referenceCol = formData?.reference_column || formData?.groupby?.[0];
+      const referenceColumn = formData?.reference_column || formData?.groupby?.[0];
+      // granularity_sqla accetta solo il nome della colonna, non una colonna ad hoc
+      const referenceCol =
+        typeof referenceColumn === 'string' ? referenceColumn : undefined;
 
       setDataMask({
         extraFormData: isComparing
