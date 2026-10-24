@@ -19,8 +19,10 @@
 
 import { ComparisonType, ensureIsArray } from '@superset-ui/core';
 
-export interface DashboardComparisonResult {
-  formData: Record<string, any>;
+export interface DashboardComparisonResult<
+  T extends Record<string, any> = Record<string, any>,
+> {
+  formData: T;
   timeOffsets: string[];
   comparisonType: ComparisonType;
   isComparing: boolean;
@@ -29,9 +31,9 @@ export interface DashboardComparisonResult {
 /**
  * Applies dashboard comparison overrides to chart formData and resolves effective comparison properties.
  */
-export function applyDashboardComparison(
-  formData: Record<string, any>,
-): DashboardComparisonResult {
+export function applyDashboardComparison<T extends Record<string, any>>(
+  formData: T,
+): DashboardComparisonResult<T> {
   const followDashboard = formData?.follow_dashboard_comparison !== false;
   const extraFormData = formData?.extra_form_data || {};
 
@@ -74,7 +76,7 @@ export function applyDashboardComparison(
           comparison_type: comparisonType,
         }
       : {}),
-  };
+  } as T;
 
   return {
     formData: updatedFormData,
