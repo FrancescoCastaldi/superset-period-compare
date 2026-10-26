@@ -1,0 +1,10 @@
+with open(r'D:\Actual\03_Sviluppo_Software\Repositories\superset-period-compare\scripts\e2e\3259.entry.js', 'r', encoding='utf-8') as f:
+    text = f.read()
+
+import re
+matches = [m.start() for m in re.finditer(r'isMetric:!0', text)]
+print("isMetric:!0 matches:", len(matches))
+for m in matches:
+    print("Match at", m)
+    print(text[m-100:m+250])
+    print("---")
